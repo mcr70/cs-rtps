@@ -33,6 +33,24 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Message.cs" />
+    <Compile Include="Types.cs" />
+    <Compile Include="RTPSByteBuffer.cs" />
+    <Compile Include="IllegalMessageException.cs" />
+    <Compile Include="Pad.cs" />
+    <Compile Include="AckNack.cs" />
+    <Compile Include="Gap.cs" />
+    <Compile Include="InfoTimestamp.cs" />
+    <Compile Include="InfoSource.cs" />
+    <Compile Include="InfoReplyIp4.cs" />
+    <Compile Include="InfoDestination.cs" />
+    <Compile Include="InfoReply.cs" />
+    <Compile Include="NackFrag.cs" />
+    <Compile Include="HeartbeatFrag.cs" />
+    <Compile Include="Data.cs" />
+    <Compile Include="Heartbeat.cs" />
+    <Compile Include="DataFrag.cs" />
+    <Compile Include="SecureSubMessage.cs" />
+    <Compile Include="UnknownSubMessage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
