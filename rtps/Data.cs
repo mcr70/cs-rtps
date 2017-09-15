@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 
 namespace rtps
@@ -16,7 +17,7 @@ namespace rtps
 	{
 		public const int KIND = 0x15;
 
-		private short extraFlags = 0;
+        private UInt16 extraFlags = 0;
 		private EntityId readerId;
 		private EntityId writerId;
 		private SequenceNumber writerSN;
@@ -73,20 +74,20 @@ namespace rtps
 				throw new System.InvalidOperationException("This version of protocol does not allow Data submessage to contain both serialized data and serialized key (9.4.5.3.1)");
 			}
 
-			int start_count = bb.Position; // start of bytes read so far from the
+			long start_count = bb.Position; // start of bytes read so far from the
 			// beginning
 
-			this.extraFlags = (short) bb.read_short();
+			this.extraFlags = bb.read_short();
 			int octetsToInlineQos = bb.read_short() & 0xffff;
 
-			int currentCount = bb.Position; // count bytes to inline qos
+			long currentCount = bb.Position; // count bytes to inline qos
 
 			this.readerId = EntityId.readEntityId(bb);
 			this.writerId = EntityId.readEntityId(bb);
 			this.writerSN = new SequenceNumber(bb);
 
-			int bytesRead = bb.Position - currentCount;
-			int unknownOctets = octetsToInlineQos - bytesRead;
+			long bytesRead = bb.Position - currentCount;
+			long unknownOctets = octetsToInlineQos - bytesRead;
 
 			for (int i = 0; i < unknownOctets; i++)
 			{
@@ -106,7 +107,7 @@ namespace rtps
 			{
 				bb.align(4); // Each submessage is aligned on 32-bit boundary, @see
 				// 9.4.1 Overall Structure
-				int end_count = bb.Position; // end of bytes read so far from the
+				long end_count = bb.Position; // end of bytes read so far from the
 				// beginning
 
 				byte[] serializedPayload = null;
@@ -211,7 +212,7 @@ namespace rtps
 			}
 		}
 
-		public virtual short ExtraFlags
+		public virtual UInt16 ExtraFlags
 		{
 			get
 			{
@@ -223,7 +224,7 @@ namespace rtps
 		{
 			bb.write_short(extraFlags);
 
-			short octets_to_inline_qos = 4 + 4 + 8; // EntityId.LENGTH + EntityId.LENGTH + SequenceNumber.LENGTH;
+            UInt16 octets_to_inline_qos = 4 + 4 + 8; // EntityId.LENGTH + EntityId.LENGTH + SequenceNumber.LENGTH;
 			bb.write_short(octets_to_inline_qos);
 
 			readerId.writeTo(bb);

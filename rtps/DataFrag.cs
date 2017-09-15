@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace rtps 
@@ -12,14 +13,14 @@ namespace rtps
 	{
 		public const int KIND = 0x16;
 
-		private short extraFlags;
+		private UInt16 extraFlags;
 		private EntityId readerId;
 		private EntityId writerId;
 		private SequenceNumber writerSN;
-		private int fragmentStartingNum;
-		private int fragmentsInSubmessage;
-		private int fragmentSize;
-		private int sampleSize;
+		private UInt32 fragmentStartingNum;
+        private UInt16 fragmentsInSubmessage;
+        private UInt16 fragmentSize;
+        private UInt32 sampleSize;
 
 		private IList<Parameter> parameterList = new List<Parameter>();
 		private byte[] serializedPayload;
@@ -64,7 +65,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int FragmentStartingNumber
+        public virtual UInt32 FragmentStartingNumber
 		{
 			get
 			{
@@ -72,7 +73,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int FragmentsInSubmessage
+        public virtual UInt16 FragmentsInSubmessage
 		{
 			get
 			{
@@ -80,7 +81,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int FragmentSize
+        public virtual UInt16 FragmentSize
 		{
 			get
 			{
@@ -88,7 +89,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int SampleSize
+        public virtual UInt32 SampleSize
 		{
 			get
 			{ // getDataSize()
@@ -114,13 +115,13 @@ namespace rtps
 
 		private void readMessage(RTPSByteBuffer bb)
 		{
-            int start_count = bb.Position; // start of bytes read so far from the
+            long start_count = bb.Position; // start of bytes read so far from the
 											 // beginning
 
-			this.extraFlags = (short) bb.read_short();
+			this.extraFlags = bb.read_short();
 			int octetsToInlineQos = bb.read_short() & 0xffff;
 
-            int currentCount = bb.Position; // count bytes to inline qos
+            long currentCount = bb.Position; // count bytes to inline qos
 
 			this.readerId = EntityId.readEntityId(bb);
 			this.writerId = EntityId.readEntityId(bb);
@@ -131,8 +132,8 @@ namespace rtps
 			this.fragmentSize = bb.read_short(); // ushort
 			this.sampleSize = bb.read_long(); // ulong
 
-            int bytesRead = bb.Position - currentCount;
-			int unknownOctets = octetsToInlineQos - bytesRead;
+            long bytesRead = bb.Position - currentCount;
+			long unknownOctets = octetsToInlineQos - bytesRead;
 
 			for (int i = 0; i < unknownOctets; i++)
 			{
@@ -144,7 +145,7 @@ namespace rtps
 				readParameterList(bb);
 			}
 
-            int end_count = bb.Position; // end of bytes read so far from the beginning
+            long end_count = bb.Position; // end of bytes read so far from the beginning
 
 			this.serializedPayload = new byte[header.submessageLength - (end_count - start_count)];
 			bb.read(serializedPayload);
@@ -172,7 +173,7 @@ namespace rtps
 		{
 			bb.write_short(extraFlags);
 
-			short octets_to_inline_qos = 4 + 4 + 8 + 4 + 2 + 2 + 4;
+            UInt16 octets_to_inline_qos = 4 + 4 + 8 + 4 + 2 + 2 + 4;
 			bb.write_short(octets_to_inline_qos);
 
 			readerId.writeTo(bb);
@@ -180,8 +181,8 @@ namespace rtps
 			writerSN.writeTo(bb);
 
 			bb.write_long(fragmentStartingNum);
-			bb.write_short((short) fragmentsInSubmessage);
-			bb.write_short((short) fragmentSize);
+			bb.write_short(fragmentsInSubmessage);
+			bb.write_short(fragmentSize);
 			bb.write_long(sampleSize);
 
 			if (inlineQosFlag())

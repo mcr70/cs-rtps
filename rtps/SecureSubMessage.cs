@@ -24,7 +24,7 @@ namespace rtps
 		internal SecureSubMessage(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
 		{
 
-			int transformationKind = bb.read_long();
+            UInt32 transformationKind = bb.read_long();
 			byte[] trasformationId = new byte[8];
 			bb.read(trasformationId);
 
@@ -78,7 +78,7 @@ namespace rtps
 
 	public class SecurePayload
 	{
-		private int transformationKind;
+        private UInt32 transformationKind;
 		private byte[] trasformationId;
 		private byte[] cipherText;
 
@@ -86,7 +86,7 @@ namespace rtps
 		{
 		}
 
-		public SecurePayload(int transformationKind, byte[] trasformationId, byte[] cipherText)
+        public SecurePayload(UInt32 transformationKind, byte[] trasformationId, byte[] cipherText)
 		{
 			this.transformationKind = transformationKind;
 			this.trasformationId = trasformationId;

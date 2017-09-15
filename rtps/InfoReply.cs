@@ -92,7 +92,7 @@ namespace rtps
 
 		public void writeTo(RTPSByteBuffer bb)
 		{
-			bb.write_long(unicastLocatorList.Count);
+			bb.write_long((uint)unicastLocatorList.Count);
 			foreach (Locator loc in unicastLocatorList)
 			{
 				loc.writeTo(bb);
@@ -100,7 +100,7 @@ namespace rtps
 
 			if (multicastFlag())
 			{
-				bb.write_long(multicastLocatorList.Count);
+				bb.write_long((uint)multicastLocatorList.Count);
 				foreach (Locator loc in multicastLocatorList)
 				{
 					loc.writeTo(bb);

@@ -1,3 +1,5 @@
+using System;
+
 namespace rtps
 {
 	/// <summary>
@@ -16,9 +18,9 @@ namespace rtps
 		private EntityId writerId;
 		private SequenceNumber firstSN;
 		private SequenceNumber lastSN;
-		private int count;
+		private UInt32 count;
 
-		public Heartbeat(EntityId readerId, EntityId writerId, long firstSeqNum, long lastSeqNum, int count) : base(new SubMessageHeader(KIND))
+        public Heartbeat(EntityId readerId, EntityId writerId, long firstSeqNum, long lastSeqNum, UInt32 count) : base(new SubMessageHeader(KIND))
 		{
 
 			this.readerId = readerId;
@@ -32,7 +34,6 @@ namespace rtps
 
 		internal Heartbeat(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
 		{
-
 			readMessage(bb);
 		}
 
@@ -149,7 +150,7 @@ namespace rtps
 		/// that can result from the presence of redundant communication paths.
 		/// </summary>
 		/// <returns> a count </returns>
-		public virtual int Count
+        public virtual UInt32 Count
 		{
 			get
 			{

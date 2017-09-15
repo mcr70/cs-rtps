@@ -1,3 +1,5 @@
+using System;
+
 namespace rtps
 {
 	/// <summary>
@@ -23,27 +25,31 @@ namespace rtps
 		/// the writer that sent the message.
 		/// </summary>
 		private EntityId readerId;
-		/// <summary>
+		
+        /// <summary>
 		/// Identifies the Writer Entity that sent the Submessage.
 		/// </summary>
 		private EntityId writerId;
-		/// <summary>
+		
+        /// <summary>
 		/// Identifies the sequence number of the data change for which fragments are
 		/// available.
 		/// </summary>
 		private SequenceNumber writerSN;
-		/// <summary>
+		
+        /// <summary>
 		/// All fragments up to and including this last (highest) fragment are
 		/// available on the Writer for the change identified by writerSN.
 		/// </summary>
-		private int lastFragmentNum;
-		/// <summary>
+        private UInt32 lastFragmentNum;
+
+        /// <summary>
 		/// A counter that is incremented each time a new HeartbeatFrag message is
 		/// sent. Provides the means for a Reader to detect duplicate HeartbeatFrag
 		/// messages that can result from the presence of redundant communication
 		/// paths.
 		/// </summary>
-		private int count;
+		private UInt32 count;
 
 		public HeartbeatFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
 		{
@@ -75,7 +81,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int LastFragmentNumber
+        public virtual UInt32 LastFragmentNumber
 		{
 			get
 			{
@@ -83,7 +89,7 @@ namespace rtps
 			}
 		}
 
-		public virtual int Count
+        public virtual UInt32 Count
 		{
 			get
 			{

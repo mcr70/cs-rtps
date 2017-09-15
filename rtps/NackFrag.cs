@@ -1,3 +1,5 @@
+using System;
+
 namespace rtps
 {
 	/// <summary>
@@ -19,7 +21,7 @@ namespace rtps
 		private EntityId writerId;
 		private SequenceNumber writerSN;
 		private SequenceNumberSet fragmentNumberState;
-		private int count;
+		private UInt32 count;
 
 		public NackFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
 		{
@@ -84,7 +86,7 @@ namespace rtps
 		/// that can result from the presence of redundant communication paths.
 		/// </summary>
 		/// <returns> a count </returns>
-		public virtual int Count
+        public virtual UInt32 Count
 		{
 			get
 			{

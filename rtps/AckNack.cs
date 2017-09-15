@@ -1,3 +1,5 @@
+using System;
+
 namespace rtps
 {
 	/// <summary>
@@ -20,9 +22,9 @@ namespace rtps
 		private EntityId readerId;
 		private EntityId writerId;
 		private SequenceNumberSet readerSNState;
-		private int count;
+		private UInt32 count;
 
-		public AckNack(EntityId readerId, EntityId writerId, SequenceNumberSet readerSnSet, int count) : base(new SubMessageHeader(KIND))
+        public AckNack(EntityId readerId, EntityId writerId, SequenceNumberSet readerSnSet, UInt32 count) : base(new SubMessageHeader(KIND))
 		{
 			this.readerId = readerId;
 			this.writerId = writerId;
@@ -108,7 +110,7 @@ namespace rtps
 		/// can result from the presence of redundant communication paths.
 		/// </summary>
 		/// <returns> count </returns>
-		public virtual int Count
+		public virtual UInt32 Count
 		{
 			get
 			{
@@ -116,7 +118,7 @@ namespace rtps
 			}
 		}
 
-		private void readMessage(RTPSByteBuffer bb)
+        private void readMessage(RTPSByteBuffer bb)
 		{
 			this.readerId = EntityId.readEntityId(bb);
 			this.writerId = EntityId.readEntityId(bb);

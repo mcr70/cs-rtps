@@ -56,9 +56,9 @@ namespace rtps
                 }
 
                 SubMessageHeader smh = new SubMessageHeader(bb);
-                bb.Endianess = smh.endiannessFlag();
+                bb.IsLittleEndian = smh.endiannessFlag();
 
-                int smStart = bb.Position;
+                long smStart = bb.Position;
 
                 SubMessage sm = null;
 
@@ -112,8 +112,8 @@ namespace rtps
                         break;
                 }
 
-                int smEnd = bb.Position;
-                int smLength = smEnd - smStart;
+                long smEnd = bb.Position;
+                long smLength = smEnd - smStart;
 
                 submessages.Add(sm);
 
@@ -504,7 +504,7 @@ namespace rtps
 		{
 			kind = (sbyte)bb.read_octet();
 			flags = (sbyte)bb.read_octet();
-			bb.Endianess = endiannessFlag();
+			bb.IsLittleEndian = endiannessFlag();
 
 			submessageLength = ((int)bb.read_short()) & 0xffff;
 		}

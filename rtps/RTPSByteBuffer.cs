@@ -1,55 +1,135 @@
 ﻿using System;
+using System.IO;
+
 namespace rtps
 {
     public class RTPSByteBuffer
     {
+        private MemoryStream stream;
+        private BinaryReader reader;
+        private BinaryWriter writer;
+
+        public RTPSByteBuffer(byte[] bytes)
+        {
+            stream = new MemoryStream(bytes);
+            reader = new BinaryReader(stream);
+            writer = new BinaryWriter(stream);
+        }
+
         public RTPSByteBuffer()
         {
+            stream = new MemoryStream(1024);
+            reader = new BinaryReader(stream);
+            writer = new BinaryWriter(stream);
+
+            IsLittleEndian = BitConverter.IsLittleEndian;
         }
 
-        public int Remaining { get; internal set;  }
-        public int Position { get; internal set; }
-		public int Capacity { get; internal set; }
-		public bool Endianess { get; internal set; }
+        // Network byte order is big-endian; most significant byte first.
+        // Byte order is checked only on reading, as this involves
+        // reading of data sent by remote entities.
+        // Write methods use whatever the platform gives us.
+        public bool IsLittleEndian { get; internal set; }
 
-        internal sbyte read_octet()
+        public long Remaining
         {
-            throw new NotImplementedException();
+            get { return stream.Length - stream.Position; }
         }
 
-        internal int read_short()
+        public long Position
         {
-            throw new NotImplementedException();
+            get { return stream.Position; }
+            internal set { stream.Position = value; }
         }
 
-
-        internal void read(byte[] bytes) {
-            throw new NotImplementedException();
+        public long Capacity
+        {
+            get { return stream.Length; }
         }
+
+        internal byte read_octet()
+        {
+            return reader.ReadByte();
+        }
+
+        internal UInt16 read_short()
+        {
+			align(2);
+
+			UInt16 i = reader.ReadUInt16();
+            if (IsLittleEndian)
+            {
+                return i;
+            }
+
+            return (ushort)SwapBytes(i);
+        }
+
+        internal UInt32 read_long()
+        {
+			align(4);
+
+			UInt32 i = reader.ReadUInt32();
+			if (IsLittleEndian)
+			{
+				return i;
+			}
+
+            return (uint)SwapBytes((ulong)i);
+		}
+
+        internal void read(byte[] bytes)
+        {
+            stream.Read(bytes, 0, bytes.Length);
+        }
+
+        internal long align(int byteBoundary)
+        {
+            long position = stream.Position;
+            long adv = (position % byteBoundary);
+
+            if (adv != 0)
+            {
+                stream.Position = position + (byteBoundary - adv);
+            }
+
+            return adv;
+        }
+
 
         internal void write(byte[] bytes)
         {
-            throw new NotImplementedException();
+            stream.Write(bytes, 0, bytes.Length);
         }
 
-        internal void align(int v)
+        internal void write_short(UInt16 i)
+		{
+            align(2);
+			throw new NotImplementedException();
+		}
+		
+        internal void write_long(UInt32 i)
         {
-            throw new NotImplementedException();
+			align(4);
+			throw new NotImplementedException();
         }
 
-        internal int read_long()
+        private uint SwapBytes(uint x)
         {
-            throw new NotImplementedException();
+            // swap adjacent 16-bit blocks
+            x = (x >> 16) | (x << 16);
+            // swap adjacent 8-bit blocks
+            return ((x & 0xFF00FF00) >> 8) | ((x & 0x00FF00FF) << 8);
         }
 
-        internal void write_long(int count)
+        private ulong SwapBytes(ulong x)
         {
-            throw new NotImplementedException();
-        }
-
-        internal void write_short(short extraFlags)
-        {
-            throw new NotImplementedException();
+            // swap adjacent 32-bit blocks
+            x = (x >> 32) | (x << 32);
+            // swap adjacent 16-bit blocks
+            x = ((x & 0xFFFF0000FFFF0000) >> 16) | ((x & 0x0000FFFF0000FFFF) << 16);
+            // swap adjacent 8-bit blocks
+            return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
         }
     }
 }
