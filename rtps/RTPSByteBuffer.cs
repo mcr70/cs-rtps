@@ -3,21 +3,18 @@ using System.IO;
 
 namespace rtps
 {
-    public class RTPSByteBuffer
-    {
+    public class RTPSByteBuffer {
         private MemoryStream stream;
         private BinaryReader reader;
         private BinaryWriter writer;
 
-        public RTPSByteBuffer(byte[] bytes)
-        {
+        public RTPSByteBuffer(byte[] bytes) {
             stream = new MemoryStream(bytes);
             reader = new BinaryReader(stream);
             writer = new BinaryWriter(stream);
         }
 
-        public RTPSByteBuffer()
-        {
+        public RTPSByteBuffer() {
             stream = new MemoryStream(1024);
             reader = new BinaryReader(stream);
             writer = new BinaryWriter(stream);
@@ -31,99 +28,91 @@ namespace rtps
         // Write methods use whatever the platform gives us.
         public bool IsLittleEndian { get; internal set; }
 
-        public long Remaining
-        {
-            get { return stream.Length - stream.Position; }
+        public long Remaining {
+            get { return stream.Length-stream.Position; }
         }
 
-        public long Position
-        {
+        public long Position {
             get { return stream.Position; }
             internal set { stream.Position = value; }
         }
 
-        public long Capacity
-        {
+        public long Capacity {
             get { return stream.Length; }
         }
 
-        internal byte read_octet()
-        {
+        internal byte read_octet() {
             return reader.ReadByte();
         }
 
-        internal UInt16 read_short()
-        {
-			align(2);
+        internal UInt16 read_short() {
+            align(2);
 
-			UInt16 i = reader.ReadUInt16();
-            if (IsLittleEndian)
-            {
+            UInt16 i = reader.ReadUInt16();
+            if (IsLittleEndian) {
                 return i;
             }
 
-            return (ushort)SwapBytes(i);
+            return SwapBytes(i);
         }
 
-        internal UInt32 read_long()
-        {
-			align(4);
+        internal UInt32 read_long() {
+            align(4);
 
-			UInt32 i = reader.ReadUInt32();
-			if (IsLittleEndian)
-			{
-				return i;
-			}
+            UInt32 i = reader.ReadUInt32();
+            if (IsLittleEndian) {
+                return i;
+            }
 
-            return (uint)SwapBytes((ulong)i);
-		}
+            return SwapBytes(i);
+        }
 
-        internal void read(byte[] bytes)
-        {
+        internal void read(byte[] bytes) {
             stream.Read(bytes, 0, bytes.Length);
         }
 
-        internal long align(int byteBoundary)
-        {
+        internal long align(int byteBoundary) {
             long position = stream.Position;
-            long adv = (position % byteBoundary);
+            long adv = (position%byteBoundary);
 
-            if (adv != 0)
-            {
-                stream.Position = position + (byteBoundary - adv);
+            if (adv != 0) {
+                stream.Position = position+(byteBoundary-adv);
             }
 
             return adv;
         }
 
 
-        internal void write(byte[] bytes)
-        {
+        internal void write(byte[] bytes) {
             stream.Write(bytes, 0, bytes.Length);
         }
 
-        internal void write_short(UInt16 i)
-		{
-            align(2);
-			throw new NotImplementedException();
-		}
-		
-        internal void write_long(UInt32 i)
-        {
-			align(4);
-			throw new NotImplementedException();
+        internal void write_octet(byte i) {
+            writer.Write(i);
         }
 
-        private uint SwapBytes(uint x)
-        {
+        internal void write_short(UInt16 i) {
+            align(2);
+            writer.Write(i);
+        }
+
+        internal void write_long(UInt32 i) {
+            align(4);
+            writer.Write(i);
+        }
+
+        private UInt16 SwapBytes(UInt16 x) {
+            return (UInt16)((x >> 8) | (x << 8)); 
+        }
+
+        private UInt32 SwapBytes(UInt32 x) {
             // swap adjacent 16-bit blocks
             x = (x >> 16) | (x << 16);
             // swap adjacent 8-bit blocks
             return ((x & 0xFF00FF00) >> 8) | ((x & 0x00FF00FF) << 8);
         }
 
-        private ulong SwapBytes(ulong x)
-        {
+        private ulong SwapBytesXX(ulong x) {
             // swap adjacent 32-bit blocks
             x = (x >> 32) | (x << 32);
             // swap adjacent 16-bit blocks
