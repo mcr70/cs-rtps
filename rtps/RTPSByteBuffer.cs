@@ -41,11 +41,11 @@ namespace rtps
             get { return stream.Length; }
         }
 
-        internal byte read_octet() {
+        public byte read_octet() {
             return reader.ReadByte();
         }
 
-        internal UInt16 read_short() {
+        public UInt16 read_short() {
             align(2);
 
             UInt16 i = reader.ReadUInt16();
@@ -56,7 +56,7 @@ namespace rtps
             return SwapBytes(i);
         }
 
-        internal UInt32 read_long() {
+        public UInt32 read_long() {
             align(4);
 
             UInt32 i = reader.ReadUInt32();
@@ -67,52 +67,53 @@ namespace rtps
             return SwapBytes(i);
         }
 
-        internal void read(byte[] bytes) {
+        public void read(byte[] bytes) {
             stream.Read(bytes, 0, bytes.Length);
         }
 
-        internal long align(int byteBoundary) {
+        public void write(byte[] bytes) {
+            stream.Write(bytes, 0, bytes.Length);
+        }
+
+        public void write_octet(byte i) {
+            writer.Write(i);
+        }
+
+        public void write_short(UInt16 i) {
+            align(2);
+            writer.Write(i);
+        }
+
+        public void write_long(UInt32 i) {
+            align(4);
+            writer.Write(i);
+        }
+
+
+        internal long align(int byteBoundary)
+        {
             long position = stream.Position;
-            long adv = (position%byteBoundary);
+            long adv = (position % byteBoundary);
 
             if (adv != 0) {
-                stream.Position = position+(byteBoundary-adv);
+                stream.Position = position + (byteBoundary - adv);
             }
 
             return adv;
         }
 
-
-        internal void write(byte[] bytes) {
-            stream.Write(bytes, 0, bytes.Length);
-        }
-
-        internal void write_octet(byte i) {
-            writer.Write(i);
-        }
-
-        internal void write_short(UInt16 i) {
-            align(2);
-            writer.Write(i);
-        }
-
-        internal void write_long(UInt32 i) {
-            align(4);
-            writer.Write(i);
-        }
-
-        private UInt16 SwapBytes(UInt16 x) {
+        internal UInt16 SwapBytes(UInt16 x) {
             return (UInt16)((x >> 8) | (x << 8)); 
         }
 
-        private UInt32 SwapBytes(UInt32 x) {
+        internal UInt32 SwapBytes(UInt32 x) {
             // swap adjacent 16-bit blocks
             x = (x >> 16) | (x << 16);
             // swap adjacent 8-bit blocks
             return ((x & 0xFF00FF00) >> 8) | ((x & 0x00FF00FF) << 8);
         }
 
-        private ulong SwapBytesXX(ulong x) {
+        private ulong SwapBytesXX(ulong x) { // NOT USED ATM
             // swap adjacent 32-bit blocks
             x = (x >> 32) | (x << 32);
             // swap adjacent 16-bit blocks
