@@ -46,7 +46,7 @@ namespace rtps {
         public virtual GuidPrefix GuidPrefix => guidPrefix;
 
         public override void WriteTo(RTPSByteBuffer bb) {
-            guidPrefix.writeTo(bb);
+            guidPrefix.WriteTo(bb);
         }
 
         public override string ToString() {

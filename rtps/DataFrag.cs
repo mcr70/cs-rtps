@@ -109,9 +109,9 @@ namespace rtps {
             UInt16 octets_to_inline_qos = 4 + 4 + 8 + 4 + 2 + 2 + 4;
             bb.write_short(octets_to_inline_qos);
 
-            readerId.writeTo(bb);
-            writerId.writeTo(bb);
-            writerSN.writeTo(bb);
+            readerId.WriteTo(bb);
+            writerId.WriteTo(bb);
+            writerSN.WriteTo(bb);
 
             bb.write_long(fragmentStartingNum);
             bb.write_short(fragmentsInSubmessage);
@@ -127,7 +127,7 @@ namespace rtps {
 
         private void writeParameterList(RTPSByteBuffer buffer) {
             foreach (Parameter param in parameterList) {
-                param.writeTo(buffer);
+                param.WriteTo(buffer);
             }
 
             // TODO: last Parameter must be PID_SENTINEL

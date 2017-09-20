@@ -126,10 +126,10 @@ namespace rtps {
         }
 
         public override void WriteTo(RTPSByteBuffer bb) {
-            readerId.writeTo(bb);
-            writerId.writeTo(bb);
-            firstSN.writeTo(bb);
-            lastSN.writeTo(bb);
+            readerId.WriteTo(bb);
+            writerId.WriteTo(bb);
+            firstSN.WriteTo(bb);
+            lastSN.WriteTo(bb);
 
             bb.write_long(count);
         }

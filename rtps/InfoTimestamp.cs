@@ -51,7 +51,7 @@ namespace rtps
 		{
 			if (!invalidateFlag())
 			{
-				timestamp.writeTo(bb);
+				timestamp.WriteTo(bb);
 			}
 		}
 

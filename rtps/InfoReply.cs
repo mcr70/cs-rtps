@@ -71,13 +71,13 @@ namespace rtps {
         public override void WriteTo(RTPSByteBuffer bb) {
             bb.write_long((uint) unicastLocatorList.Count);
             foreach (Locator loc in unicastLocatorList) {
-                loc.writeTo(bb);
+                loc.WriteTo(bb);
             }
 
             if (multicastFlag()) {
                 bb.write_long((uint) multicastLocatorList.Count);
                 foreach (Locator loc in multicastLocatorList) {
-                    loc.writeTo(bb);
+                    loc.WriteTo(bb);
                 }
             }
         }

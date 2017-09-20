@@ -70,10 +70,10 @@ namespace rtps {
         }
 
         public override void WriteTo(RTPSByteBuffer bb) {
-            readerId.writeTo(bb);
-            writerId.writeTo(bb);
-            writerSN.writeTo(bb);
-            fragmentNumberState.writeTo(bb);
+            readerId.WriteTo(bb);
+            writerId.WriteTo(bb);
+            writerSN.WriteTo(bb);
+            fragmentNumberState.WriteTo(bb);
 
             bb.write_long(count);
         }

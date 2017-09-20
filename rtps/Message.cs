@@ -282,9 +282,9 @@ namespace rtps {
         /// <param name="bb"> RTPSByteBuffer to write to </param>
         public virtual void writeTo(RTPSByteBuffer bb) {
             bb.write(hdrStart);
-            version.writeTo(bb);
-            vendorId.writeTo(bb);
-            guidPrefix.writeTo(bb);
+            version.WriteTo(bb);
+            vendorId.WriteTo(bb);
+            guidPrefix.WriteTo(bb);
         }
 
         public override string ToString() {

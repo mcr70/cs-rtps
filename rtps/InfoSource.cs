@@ -54,9 +54,9 @@ namespace rtps {
 
         public override void WriteTo(RTPSByteBuffer bb) {
             bb.write_long(0);
-            protocolVersion.writeTo(bb);
-            vendorId.writeTo(bb);
-            guidPrefix.writeTo(bb);
+            protocolVersion.WriteTo(bb);
+            vendorId.WriteTo(bb);
+            guidPrefix.WriteTo(bb);
         }
 
         public override string ToString() {

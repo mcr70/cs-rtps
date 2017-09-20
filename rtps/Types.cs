@@ -2,7 +2,15 @@
 using System.Collections.Generic;
 
 namespace rtps {
-    public class GuidPrefix {
+    public abstract class Type {
+        /// <summary>
+        /// Writes this type into RTPSByteBuffer
+        /// </summary>
+        /// <param name="bb">RTPSByteBuffer</param>
+        public abstract void WriteTo(RTPSByteBuffer bb);
+    }
+    
+    public class GuidPrefix : Type {
         public static readonly GuidPrefix GUIDPREFIX_UNKNOWN = new GuidPrefix();
 
         public GuidPrefix() {
@@ -13,12 +21,12 @@ namespace rtps {
             throw new NotImplementedException();
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class ProtocolVersion {
+    public class ProtocolVersion : Type {
         public static readonly ProtocolVersion PROTOCOLVERSION_2_1 = new ProtocolVersion();
 
         private byte[] bytes;
@@ -32,12 +40,12 @@ namespace rtps {
             bb.read(bytes);
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class VendorId {
+    public class VendorId : Type {
         public static readonly VendorId JRTPS = new VendorId(new byte[] {(byte) 0x01, (byte) 0x21});
 
         private byte[] bytes;
@@ -51,29 +59,27 @@ namespace rtps {
             bb.read(bytes);
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class EntityId {
+    public class EntityId : Type {
         internal static EntityId readEntityId(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class SequenceNumberSet {
+    public class SequenceNumberSet : Type {
         private SequenceNumber bmbase;
         private int[] bitmaps;
         private int numBits;
 
-        public long BitmapBase {
-            get { return bmbase.asLong(); }
-        }
+        public long BitmapBase => bmbase.asLong();
 
         public List<long> SequenceNumbers {
             get {
@@ -110,12 +116,12 @@ namespace rtps {
             this.bitmaps = bitMaps;
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class SequenceNumber {
+    public class SequenceNumber : Type {
         private long sn;
 
         public SequenceNumber(RTPSByteBuffer bb) {
@@ -130,12 +136,12 @@ namespace rtps {
             return sn;
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class Time {
+    public class Time : Type {
         private long systemCurrentMillis;
 
         public Time(long systemCurrentMillis) {
@@ -146,39 +152,39 @@ namespace rtps {
             throw new NotImplementedException();
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class Locator {
+    public class Locator : Type {
         public Locator(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class LocatorUDPv4_t {
+    public class LocatorUDPv4_t : Type {
         public LocatorUDPv4_t(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
 
-    public class ParameterList {
+    public class ParameterList : Type {
         private RTPSByteBuffer bb;
 
         public ParameterList(RTPSByteBuffer bb) {
             this.bb = bb;
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             throw new NotImplementedException();
         }
 
@@ -204,9 +210,15 @@ namespace rtps {
     }
 
     public class StatusInfo : Parameter {
+        public override void WriteTo(RTPSByteBuffer buffer) {
+            throw new NotImplementedException();
+        }
     }
 
     public class ContentFilterInfo : Parameter {
+        public override void WriteTo(RTPSByteBuffer buffer) {
+            throw new NotImplementedException();
+        }
     }
 
     public enum ParameterId {
@@ -215,12 +227,10 @@ namespace rtps {
         PID_STATUS_INFO
     }
 
-    public class Parameter {
+    public abstract class Parameter {
         public ParameterId ParameterId { get; internal set; }
 
-        internal void writeTo(RTPSByteBuffer buffer) {
-            throw new NotImplementedException();
-        }
+        public abstract void WriteTo(RTPSByteBuffer buffer);
     }
 
     public class ParameterFactory {

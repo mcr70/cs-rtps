@@ -87,10 +87,10 @@ namespace rtps {
 
 
         public  override void WriteTo(RTPSByteBuffer bb) {
-            readerId.writeTo(bb);
-            writerId.writeTo(bb);
-            gapStart.writeTo(bb);
-            gapList.writeTo(bb);
+            readerId.WriteTo(bb);
+            writerId.WriteTo(bb);
+            gapStart.WriteTo(bb);
+            gapList.WriteTo(bb);
         }
 
         public override string ToString() {

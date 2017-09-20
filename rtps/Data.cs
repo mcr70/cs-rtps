@@ -179,12 +179,12 @@ namespace rtps {
             UInt16 octets_to_inline_qos = 4 + 4 + 8; // EntityId.LENGTH + EntityId.LENGTH + SequenceNumber.LENGTH;
             bb.write_short(octets_to_inline_qos);
 
-            readerId.writeTo(bb);
-            writerId.writeTo(bb);
-            writerSN.writeTo(bb);
+            readerId.WriteTo(bb);
+            writerId.WriteTo(bb);
+            writerSN.WriteTo(bb);
 
             if (inlineQosFlag()) {
-                inlineQosParams.writeTo(bb);
+                inlineQosParams.WriteTo(bb);
             }
 
             if (dataFlag() || keyFlag()) {

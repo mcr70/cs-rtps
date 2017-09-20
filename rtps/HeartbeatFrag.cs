@@ -77,9 +77,9 @@ namespace rtps
 
 		public override void WriteTo(RTPSByteBuffer bb)
 		{
-			readerId.writeTo(bb);
-			writerId.writeTo(bb);
-			writerSN.writeTo(bb);
+			readerId.WriteTo(bb);
+			writerId.WriteTo(bb);
+			writerSN.WriteTo(bb);
 
 			bb.write_long(lastFragmentNum);
 			bb.write_long(count);

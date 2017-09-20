@@ -57,8 +57,8 @@ namespace rtps {
         }
 
         public override void WriteTo(RTPSByteBuffer bb) {
-            unicastLocator.writeTo(bb);
-            multicastLocator.writeTo(bb);
+            unicastLocator.WriteTo(bb);
+            multicastLocator.WriteTo(bb);
         }
     }
 }
