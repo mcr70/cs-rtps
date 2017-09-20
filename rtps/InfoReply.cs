@@ -14,8 +14,8 @@ namespace rtps {
     public class InfoReply : SubMessage {
         public const int KIND = 0x0f;
 
-        private IList<Locator> unicastLocatorList = new List<Locator>();
-        private IList<Locator> multicastLocatorList = new List<Locator>();
+        private readonly IList<Locator> unicastLocatorList = new List<Locator>();
+        private readonly IList<Locator> multicastLocatorList = new List<Locator>();
 
         public InfoReply(IList<Locator> unicastLocators, IList<Locator> multicastLocators) : base(
             new SubMessageHeader(KIND)) {
@@ -68,7 +68,7 @@ namespace rtps {
         /// <returns> a List of Locators </returns>
         public virtual IList<Locator> MulticastLocatorList => multicastLocatorList;
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             bb.write_long((uint) unicastLocatorList.Count);
             foreach (Locator loc in unicastLocatorList) {
                 loc.writeTo(bb);

@@ -384,6 +384,12 @@ namespace rtps {
         }
 
         /// <summary>
+        /// Writes This SubMessage into RTPSByteBuffer
+        /// </summary>
+        /// <param name="bb">RTPSByteBuffer</param>
+        public abstract void WriteTo(RTPSByteBuffer bb);
+
+        /// <summary>
         /// Writes this SubMessage into given RTPSByteBuffer.
         /// </summary>
         /// <param name="bb"> RTPSByteBuffer </param>

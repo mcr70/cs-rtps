@@ -86,7 +86,7 @@ namespace rtps {
         public virtual SequenceNumberSet GapList => gapList;
 
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public  override void WriteTo(RTPSByteBuffer bb) {
             readerId.writeTo(bb);
             writerId.writeTo(bb);
             gapStart.writeTo(bb);

@@ -52,7 +52,7 @@ namespace rtps {
             guidPrefix = new GuidPrefix(bb);
         }
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             bb.write_long(0);
             protocolVersion.writeTo(bb);
             vendorId.writeTo(bb);

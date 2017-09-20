@@ -19,7 +19,7 @@ namespace rtps {
             bb.read(bytes);
         }
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             bb.write(bytes);
         }
     }

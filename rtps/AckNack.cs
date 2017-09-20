@@ -102,7 +102,7 @@ namespace rtps {
             this.count = bb.read_long();
         }
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             readerId.writeTo(bb);
             writerId.writeTo(bb);
             readerSNState.writeTo(bb);

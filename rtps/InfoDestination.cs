@@ -45,7 +45,7 @@ namespace rtps {
         /// <returns> GuidPrefix </returns>
         public virtual GuidPrefix GuidPrefix => guidPrefix;
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             guidPrefix.writeTo(bb);
         }
 

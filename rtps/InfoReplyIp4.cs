@@ -56,7 +56,7 @@ namespace rtps {
             }
         }
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             unicastLocator.writeTo(bb);
             multicastLocator.writeTo(bb);
         }

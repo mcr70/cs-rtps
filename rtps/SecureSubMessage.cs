@@ -39,11 +39,9 @@ namespace rtps {
             return (header.flags & 0x2) != 0;
         }
 
-        public virtual SecurePayload SecurePayload {
-            get { return payload; }
-        }
+        public virtual SecurePayload SecurePayload => payload;
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             payload.writeTo(bb);
         }
 

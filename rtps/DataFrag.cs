@@ -103,7 +103,7 @@ namespace rtps {
             }
         }
 
-        public void writeTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RTPSByteBuffer bb) {
             bb.write_short(extraFlags);
 
             UInt16 octets_to_inline_qos = 4 + 4 + 8 + 4 + 2 + 2 + 4;
