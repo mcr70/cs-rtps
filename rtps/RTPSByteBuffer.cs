@@ -1,8 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace rtps
-{
+namespace rtps {
     public class RTPSByteBuffer {
         private MemoryStream stream;
         private BinaryReader reader;
@@ -28,18 +27,15 @@ namespace rtps
         // Write methods use whatever the platform gives us.
         public bool IsLittleEndian { get; internal set; }
 
-        public long Remaining {
-            get { return stream.Length-stream.Position; }
-        }
+        public long Remaining => stream.Length - stream.Position;
 
         public long Position {
             get { return stream.Position; }
             internal set { stream.Position = value; }
         }
 
-        public long Capacity {
-            get { return stream.Length; }
-        }
+        public long Capacity => stream.Length;
+
 
         public byte read_octet() {
             return reader.ReadByte();
@@ -49,22 +45,14 @@ namespace rtps
             align(2);
 
             UInt16 i = reader.ReadUInt16();
-            if (IsLittleEndian) {
-                return i;
-            }
-
-            return SwapBytes(i);
+            return IsLittleEndian ? i : SwapBytes(i);
         }
 
         public UInt32 read_long() {
             align(4);
 
             UInt32 i = reader.ReadUInt32();
-            if (IsLittleEndian) {
-                return i;
-            }
-
-            return SwapBytes(i);
+            return IsLittleEndian ? i : SwapBytes(i);
         }
 
         public void read(byte[] bytes) {
@@ -90,8 +78,7 @@ namespace rtps
         }
 
 
-        internal long align(int byteBoundary)
-        {
+        internal long align(int byteBoundary) {
             long position = stream.Position;
             long adv = (position % byteBoundary);
 
@@ -103,7 +90,7 @@ namespace rtps
         }
 
         internal UInt16 SwapBytes(UInt16 x) {
-            return (UInt16)((x >> 8) | (x << 8)); 
+            return (UInt16) ((x >> 8) | (x << 8));
         }
 
         internal UInt32 SwapBytes(UInt32 x) {

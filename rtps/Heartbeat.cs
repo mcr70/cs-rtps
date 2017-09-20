@@ -1,187 +1,142 @@
 using System;
 
-namespace rtps
-{
-	/// <summary>
-	/// This message is sent from an RTPS Writer to an RTPS Reader to communicate the
-	/// sequence numbers of changes that the Writer has available.
-	/// 
-	/// see 8.3.7.5
-	/// 
-	/// @author mcr70
-	/// </summary>
-	public class Heartbeat : SubMessage
-	{
-		public const int KIND = 0x07;
+namespace rtps {
+    /// <summary>
+    /// This message is sent from an RTPS Writer to an RTPS Reader to communicate the
+    /// sequence numbers of changes that the Writer has available.
+    /// 
+    /// see 8.3.7.5
+    /// 
+    /// @author mcr70
+    /// </summary>
+    public class Heartbeat : SubMessage {
+        public const int KIND = 0x07;
 
-		private EntityId readerId;
-		private EntityId writerId;
-		private SequenceNumber firstSN;
-		private SequenceNumber lastSN;
-		private UInt32 count;
+        private EntityId readerId;
+        private EntityId writerId;
+        private SequenceNumber firstSN;
+        private SequenceNumber lastSN;
+        private UInt32 count;
 
-        public Heartbeat(EntityId readerId, EntityId writerId, long firstSeqNum, long lastSeqNum, UInt32 count) : base(new SubMessageHeader(KIND))
-		{
+        public Heartbeat(EntityId readerId, EntityId writerId, long firstSeqNum, long lastSeqNum, UInt32 count) : base(
+            new SubMessageHeader(KIND)) {
+            this.readerId = readerId;
+            this.writerId = writerId;
+            this.count = count;
+            firstSN = new SequenceNumber(firstSeqNum);
+            lastSN = new SequenceNumber(lastSeqNum);
 
-			this.readerId = readerId;
-			this.writerId = writerId;
-			this.count = count;
-			firstSN = new SequenceNumber(firstSeqNum);
-			lastSN = new SequenceNumber(lastSeqNum);
+            header.flags |= 2; // set FinalFlag. No response needed.
+        }
 
-			header.flags |= 2; // set FinalFlag. No response needed.
-		}
+        internal Heartbeat(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+            readMessage(bb);
+        }
 
-		internal Heartbeat(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
-		{
-			readMessage(bb);
-		}
+        /// <summary>
+        /// Appears in the Submessage header flags. Indicates whether the Reader is
+        /// required to respond to the Heartbeat or if it is just an advisory
+        /// heartbeat. If finalFlag is set, Reader is not required to respond with
+        /// AckNack.
+        /// </summary>
+        /// <returns> true if final flag is set and reader is not required to respond </returns>
+        public virtual bool finalFlag() {
+            return (header.flags & 0x2) != 0;
+        }
 
-		/// <summary>
-		/// Appears in the Submessage header flags. Indicates whether the Reader is
-		/// required to respond to the Heartbeat or if it is just an advisory
-		/// heartbeat. If finalFlag is set, Reader is not required to respond with
-		/// AckNack.
-		/// </summary>
-		/// <returns> true if final flag is set and reader is not required to respond </returns>
-		public virtual bool finalFlag()
-		{
-			return (header.flags & 0x2) != 0;
-		}
+        /// <summary>
+        /// Sets the finalFlag to given value.
+        /// </summary>
+        /// <param name="flag"> finalFlag </param>
+        public virtual void finalFlag(bool flag) {
+            if (flag) {
+                header.flags |= 0x2;
+            }
+            else {
+                header.flags = (byte) (header.flags & ~0x2);
+            }
+        }
 
-		/// <summary>
-		/// Sets the finalFlag to given value.
-		/// </summary>
-		/// <param name="flag"> finalFlag </param>
-		public virtual void finalFlag(bool flag)
-		{
-			if (flag)
-			{
-				header.flags |= 0x2;
-			}
-			else
-			{
-				header.flags &= (sbyte)(~0x2);
-			}
-		}
+        /// <summary>
+        /// Appears in the Submessage header flags. Indicates that the DDS DataWriter
+        /// associated with the RTPS Writer of the message has manually asserted its
+        /// LIVELINESS.
+        /// </summary>
+        /// <returns> true, if liveliness flag is set </returns>
+        public virtual bool livelinessFlag() {
+            return (header.flags & 0x4) != 0;
+        }
 
-		/// <summary>
-		/// Appears in the Submessage header flags. Indicates that the DDS DataWriter
-		/// associated with the RTPS Writer of the message has manually asserted its
-		/// LIVELINESS.
-		/// </summary>
-		/// <returns> true, if liveliness flag is set </returns>
-		public virtual bool livelinessFlag()
-		{
-			return (header.flags & 0x4) != 0;
-		}
+        /// <summary>
+        /// Sets the livelinessFlag to given value
+        /// </summary>
+        /// <param name="livelinessFlag"> livelinessFlag </param>
+        public virtual void livelinessFlag(bool livelinessFlag) {
+            if (livelinessFlag) {
+                header.flags |= 0x4;
+            }
+            else {
+                header.flags = (byte) (header.flags & ~0x4);
+            }
+        }
 
-		/// <summary>
-		/// Sets the livelinessFlag to given value
-		/// </summary>
-		/// <param name="livelinessFlag"> livelinessFlag </param>
-		public virtual void livelinessFlag(bool livelinessFlag)
-		{
-			if (livelinessFlag)
-			{
-				header.flags |= 0x4;
-			}
-			else
-			{
-				header.flags &= (sbyte)(~0x4);
-			}
-		}
+        /// <summary>
+        /// Identifies the Reader Entity that is being informed of the availability
+        /// of a set of sequence numbers. Can be set to ENTITYID_UNKNOWN to indicate
+        /// all readers for the writer that sent the message.
+        /// </summary>
+        /// <returns> EntityId of the reader </returns>
+        public virtual EntityId ReaderId => readerId;
 
-		/// <summary>
-		/// Identifies the Reader Entity that is being informed of the availability
-		/// of a set of sequence numbers. Can be set to ENTITYID_UNKNOWN to indicate
-		/// all readers for the writer that sent the message.
-		/// </summary>
-		/// <returns> EntityId of the reader </returns>
-		public virtual EntityId ReaderId
-		{
-			get
-			{
-				return readerId;
-			}
-		}
+        /// <summary>
+        /// Identifies the Writer Entity to which the range of sequence numbers
+        /// applies.
+        /// </summary>
+        /// <returns> EntityId of the writer </returns>
+        public virtual EntityId WriterId => writerId;
 
-		/// <summary>
-		/// Identifies the Writer Entity to which the range of sequence numbers
-		/// applies.
-		/// </summary>
-		/// <returns> EntityId of the writer </returns>
-		public virtual EntityId WriterId
-		{
-			get
-			{
-				return writerId;
-			}
-		}
+        /// <summary>
+        /// Identifies the first (lowest) sequence number that is available in the
+        /// Writer. </summary>
+        /// <returns> First available sequence number </returns>
+        public virtual long FirstSequenceNumber => firstSN.asLong();
 
-		/// <summary>
-		/// Identifies the first (lowest) sequence number that is available in the
-		/// Writer. </summary>
-		/// <returns> First available sequence number </returns>
-		public virtual long FirstSequenceNumber
-		{
-			get
-			{
-				return firstSN.asLong();
-			}
-		}
+        /// <summary>
+        /// Identifies the last (highest) sequence number that is available in the
+        /// Writer.
+        /// </summary>
+        /// <returns> Last available sequence number </returns>
+        public virtual long LastSequenceNumber => lastSN.asLong();
 
-		/// <summary>
-		/// Identifies the last (highest) sequence number that is available in the
-		/// Writer.
-		/// </summary>
-		/// <returns> Last available sequence number </returns>
-		public virtual long LastSequenceNumber
-		{
-			get
-			{
-				return lastSN.asLong();
-			}
-		}
+        /// <summary>
+        /// A counter that is incremented each time a new Heartbeat message is sent.
+        /// Provides the means for a Reader to detect duplicate Heartbeat messages
+        /// that can result from the presence of redundant communication paths.
+        /// </summary>
+        /// <returns> a count </returns>
+        public virtual UInt32 Count => count;
 
-		/// <summary>
-		/// A counter that is incremented each time a new Heartbeat message is sent.
-		/// Provides the means for a Reader to detect duplicate Heartbeat messages
-		/// that can result from the presence of redundant communication paths.
-		/// </summary>
-		/// <returns> a count </returns>
-        public virtual UInt32 Count
-		{
-			get
-			{
-				return count;
-			}
-		}
+        private void readMessage(RTPSByteBuffer bb) {
+            this.readerId = EntityId.readEntityId(bb);
+            this.writerId = EntityId.readEntityId(bb);
+            this.firstSN = new SequenceNumber(bb);
+            this.lastSN = new SequenceNumber(bb);
 
-		private void readMessage(RTPSByteBuffer bb)
-		{
-			this.readerId = EntityId.readEntityId(bb);
-			this.writerId = EntityId.readEntityId(bb);
-			this.firstSN = new SequenceNumber(bb);
-			this.lastSN = new SequenceNumber(bb);
+            this.count = bb.read_long();
+        }
 
-			this.count = bb.read_long();
-		}
+        public void writeTo(RTPSByteBuffer bb) {
+            readerId.writeTo(bb);
+            writerId.writeTo(bb);
+            firstSN.writeTo(bb);
+            lastSN.writeTo(bb);
 
-		public void writeTo(RTPSByteBuffer bb)
-		{
-			readerId.writeTo(bb);
-			writerId.writeTo(bb);
-			firstSN.writeTo(bb);
-			lastSN.writeTo(bb);
+            bb.write_long(count);
+        }
 
-			bb.write_long(count);
-		}
-
-		public override string ToString()
-		{
-			return base.ToString() + " #" + count + ", " + readerId + ", " + writerId + ", " + firstSN + ", " + lastSN + ", F:" + finalFlag() + ", L:" + livelinessFlag();
-		}
-	}
-
+        public override string ToString() {
+            return base.ToString() + " #" + count + ", " + readerId + ", " + writerId + ", " + firstSN + ", " + lastSN +
+                   ", F:" + finalFlag() + ", L:" + livelinessFlag();
+        }
+    }
 }

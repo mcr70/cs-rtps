@@ -53,49 +53,18 @@ namespace rtps
 
 		public HeartbeatFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
 		{
-
 			readMessage(bb);
 		}
 
-		public virtual EntityId ReaderId
-		{
-			get
-			{
-				return readerId;
-			}
-		}
+		public virtual EntityId ReaderId => readerId;
 
-		public virtual EntityId WriterId
-		{
-			get
-			{
-				return writerId;
-			}
-		}
+		public virtual EntityId WriterId => writerId;
 
-		public virtual SequenceNumber WriterSequenceNumber
-		{
-			get
-			{
-				return writerSN;
-			}
-		}
+		public virtual SequenceNumber WriterSequenceNumber => writerSN;
 
-        public virtual UInt32 LastFragmentNumber
-		{
-			get
-			{
-				return lastFragmentNum;
-			}
-		}
+		public virtual UInt32 LastFragmentNumber => lastFragmentNum;
 
-        public virtual UInt32 Count
-		{
-			get
-			{
-				return count;
-			}
-		}
+		public virtual UInt32 Count => count;
 
 		private void readMessage(RTPSByteBuffer bb)
 		{

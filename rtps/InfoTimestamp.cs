@@ -37,10 +37,7 @@ namespace rtps
 		/// InvalidateFlag is not set in the header.
 		/// </summary>
 		/// <returns> true, if invalidateFlag is set </returns>
-		public virtual bool invalidateFlag()
-		{
-			return (header.flags & 0x2) != 0;
-		}
+		public virtual bool invalidateFlag() => (header.flags & 0x2) != 0;
 
 		private void readMessage(RTPSByteBuffer bb)
 		{

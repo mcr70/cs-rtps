@@ -1,117 +1,89 @@
 using System.Collections.Generic;
 
-namespace rtps
-{
-	/// <summary>
-	/// This message is sent from an RTPS Reader to an RTPS Writer. It contains
-	/// explicit information on where to send a reply to the Submessages that follow
-	/// it within the same message.
-	/// 
-	/// see 9.4.5.9 InfoReply Submessage, 8.3.7.8 InfoReply
-	/// 
-	/// @author mcr70
-	/// 
-	/// </summary>
-	public class InfoReply : SubMessage
-	{
-		public const int KIND = 0x0f;
+namespace rtps {
+    /// <summary>
+    /// This message is sent from an RTPS Reader to an RTPS Writer. It contains
+    /// explicit information on where to send a reply to the Submessages that follow
+    /// it within the same message.
+    /// 
+    /// see 9.4.5.9 InfoReply Submessage, 8.3.7.8 InfoReply
+    /// 
+    /// @author mcr70
+    /// 
+    /// </summary>
+    public class InfoReply : SubMessage {
+        public const int KIND = 0x0f;
 
-		private IList<Locator> unicastLocatorList = new List<Locator>();
-		private IList<Locator> multicastLocatorList = new List<Locator>();
+        private IList<Locator> unicastLocatorList = new List<Locator>();
+        private IList<Locator> multicastLocatorList = new List<Locator>();
 
-		public InfoReply(IList<Locator> unicastLocators, IList<Locator> multicastLocators) : base(new SubMessageHeader(KIND))
-		{
+        public InfoReply(IList<Locator> unicastLocators, IList<Locator> multicastLocators) : base(
+            new SubMessageHeader(KIND)) {
+            this.unicastLocatorList = unicastLocators;
+            this.multicastLocatorList = multicastLocators;
 
-			this.unicastLocatorList = unicastLocators;
-			this.multicastLocatorList = multicastLocators;
+            if (multicastLocatorList != null && multicastLocatorList.Count > 0) {
+                header.flags |= 0x2;
+            }
+        }
 
-			if (multicastLocatorList != null && multicastLocatorList.Count > 0)
-			{
-				header.flags |= 0x2;
-			}
-		}
+        internal InfoReply(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+            long numLocators = bb.read_long(); // ulong
+            for (int i = 0; i < numLocators; i++) {
+                Locator loc = new Locator(bb);
 
-		internal InfoReply(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
-		{
+                unicastLocatorList.Add(loc);
+            }
 
-			long numLocators = bb.read_long(); // ulong
-			for (int i = 0; i < numLocators; i++)
-			{
-				Locator loc = new Locator(bb);
+            if (multicastFlag()) {
+                numLocators = bb.read_long(); // ulong
+                for (int i = 0; i < numLocators; i++) {
+                    Locator loc = new Locator(bb);
 
-				unicastLocatorList.Add(loc);
-			}
+                    multicastLocatorList.Add(loc);
+                }
+            }
+        }
 
-			if (multicastFlag())
-			{
-				numLocators = bb.read_long(); // ulong
-				for (int i = 0; i < numLocators; i++)
-				{
-					Locator loc = new Locator(bb);
+        /// <summary>
+        /// Returns the MulticastFlag. If true, message contains MulticastLocatorList
+        /// </summary>
+        /// <returns> true, if message contains multicast locator </returns>
+        public virtual bool multicastFlag() {
+            return (header.flags & 0x2) != 0;
+        }
 
-					multicastLocatorList.Add(loc);
-				}
-			}
-		}
+        /// <summary>
+        /// Indicates an alternative set of unicast addresses that the Writer should
+        /// use to reach the Readers when replying to the Submessages that follow.
+        /// </summary>
+        /// <returns> a List of Locators </returns>
+        public virtual IList<Locator> UnicastLocatorList => unicastLocatorList;
 
-		/// <summary>
-		/// Returns the MulticastFlag. If true, message contains MulticastLocatorList
-		/// </summary>
-		/// <returns> true, if message contains multicast locator </returns>
-		public virtual bool multicastFlag()
-		{
-			return (header.flags & 0x2) != 0;
-		}
+        /// <summary>
+        /// Indicates an alternative set of multicast addresses that the Writer
+        /// should use to reach the Readers when replying to the Submessages that
+        /// follow. Only present when the MulticastFlag is set.
+        /// </summary>
+        /// <returns> a List of Locators </returns>
+        public virtual IList<Locator> MulticastLocatorList => multicastLocatorList;
 
-		/// <summary>
-		/// Indicates an alternative set of unicast addresses that the Writer should
-		/// use to reach the Readers when replying to the Submessages that follow.
-		/// </summary>
-		/// <returns> a List of Locators </returns>
-		public virtual IList<Locator> UnicastLocatorList
-		{
-			get
-			{
-				return unicastLocatorList;
-			}
-		}
+        public void writeTo(RTPSByteBuffer bb) {
+            bb.write_long((uint) unicastLocatorList.Count);
+            foreach (Locator loc in unicastLocatorList) {
+                loc.writeTo(bb);
+            }
 
-		/// <summary>
-		/// Indicates an alternative set of multicast addresses that the Writer
-		/// should use to reach the Readers when replying to the Submessages that
-		/// follow. Only present when the MulticastFlag is set.
-		/// </summary>
-		/// <returns> a List of Locators </returns>
-		public virtual IList<Locator> MulticastLocatorList
-		{
-			get
-			{
-				return multicastLocatorList;
-			}
-		}
+            if (multicastFlag()) {
+                bb.write_long((uint) multicastLocatorList.Count);
+                foreach (Locator loc in multicastLocatorList) {
+                    loc.writeTo(bb);
+                }
+            }
+        }
 
-		public void writeTo(RTPSByteBuffer bb)
-		{
-			bb.write_long((uint)unicastLocatorList.Count);
-			foreach (Locator loc in unicastLocatorList)
-			{
-				loc.writeTo(bb);
-			}
-
-			if (multicastFlag())
-			{
-				bb.write_long((uint)multicastLocatorList.Count);
-				foreach (Locator loc in multicastLocatorList)
-				{
-					loc.writeTo(bb);
-				}
-			}
-		}
-
-		public override string ToString()
-		{
-			return base.ToString() + ", " + unicastLocatorList + ", " + multicastLocatorList;
-		}
-	}
-
+        public override string ToString() {
+            return base.ToString() + ", " + unicastLocatorList + ", " + multicastLocatorList;
+        }
+    }
 }
