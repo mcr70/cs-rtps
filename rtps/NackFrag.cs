@@ -61,8 +61,8 @@ namespace rtps {
         public virtual UInt32 Count => count;
 
         private void readMessage(RTPSByteBuffer bb) {
-            this.readerId = EntityId.readEntityId(bb);
-            this.writerId = EntityId.readEntityId(bb);
+            this.readerId = new EntityId(bb);
+            this.writerId = new EntityId(bb);
             this.writerSN = new SequenceNumber(bb);
             this.fragmentNumberState = new SequenceNumberSet(bb);
 

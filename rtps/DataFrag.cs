@@ -62,8 +62,8 @@ namespace rtps {
 
             long currentCount = bb.Position; // count bytes to inline qos
 
-            this.readerId = EntityId.readEntityId(bb);
-            this.writerId = EntityId.readEntityId(bb);
+            this.readerId = new EntityId(bb);
+            this.writerId = new EntityId(bb);
             this.writerSN = new SequenceNumber(bb);
 
             this.fragmentStartingNum = bb.read_long(); // ulong
@@ -97,7 +97,7 @@ namespace rtps {
                 bb.align(4);
                 Parameter param = ParameterFactory.readParameter(bb);
                 parameterList.Add(param);
-                if (param.ParameterId == ParameterId.PID_SENTINEL) {
+                if (param.Id == ParameterId.PID_SENTINEL) {
                     break;
                 }
             }

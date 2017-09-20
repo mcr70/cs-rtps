@@ -22,8 +22,8 @@ namespace rtps {
         private SequenceNumberSet gapList;
 
         internal Gap(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
-            this.readerId = EntityId.readEntityId(bb);
-            this.writerId = EntityId.readEntityId(bb);
+            this.readerId = new EntityId(bb);
+            this.writerId = new EntityId(bb);
             this.gapStart = new SequenceNumber(bb);
             this.gapList = new SequenceNumberSet(bb);
         }
