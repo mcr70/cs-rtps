@@ -7,6 +7,8 @@
 packages/
 TestResults/
 
+.idea
+
 # globs
 Makefile.in
 *.DS_Store

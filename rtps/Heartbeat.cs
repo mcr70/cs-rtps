@@ -40,20 +40,17 @@ namespace rtps {
         /// AckNack.
         /// </summary>
         /// <returns> true if final flag is set and reader is not required to respond </returns>
-        public virtual bool finalFlag() {
-            return (header.flags & 0x2) != 0;
-        }
-
-        /// <summary>
-        /// Sets the finalFlag to given value.
-        /// </summary>
-        /// <param name="flag"> finalFlag </param>
-        public virtual void finalFlag(bool flag) {
-            if (flag) {
-                header.flags |= 0x2;
+        public bool FinalFlag {
+            get {
+                return (header.flags & 0x2) != 0;
             }
-            else {
-                header.flags = (byte) (header.flags & ~0x2);
+            internal set {
+                if (value) {
+                    header.flags |= 0x2;
+                }
+                else {
+                    header.flags = (byte) (header.flags & ~0x2);
+                }                
             }
         }
 
@@ -63,20 +60,18 @@ namespace rtps {
         /// LIVELINESS.
         /// </summary>
         /// <returns> true, if liveliness flag is set </returns>
-        public virtual bool livelinessFlag() {
-            return (header.flags & 0x4) != 0;
-        }
-
-        /// <summary>
-        /// Sets the livelinessFlag to given value
-        /// </summary>
-        /// <param name="livelinessFlag"> livelinessFlag </param>
-        public virtual void livelinessFlag(bool livelinessFlag) {
-            if (livelinessFlag) {
-                header.flags |= 0x4;
+        public virtual bool LivelinessFlag {
+            get {
+                return (header.flags & 0x4) != 0;
             }
-            else {
-                header.flags = (byte) (header.flags & ~0x4);
+            set {
+                if (value) {
+                    header.flags |= 0x4;
+                }
+                else {
+                    header.flags = (byte) (header.flags & ~0x4);
+                }
+                
             }
         }
 
