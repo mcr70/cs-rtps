@@ -58,6 +58,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="tests\" />
+    <Folder Include="tests\New Folder\" />
+    <Folder Include="message\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
