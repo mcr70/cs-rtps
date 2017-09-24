@@ -35,30 +35,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Message.cs" />
-    <Compile Include="Types.cs" />
-    <Compile Include="RTPSByteBuffer.cs" />
-    <Compile Include="IllegalMessageException.cs" />
-    <Compile Include="Pad.cs" />
-    <Compile Include="AckNack.cs" />
-    <Compile Include="Gap.cs" />
-    <Compile Include="InfoTimestamp.cs" />
-    <Compile Include="InfoSource.cs" />
-    <Compile Include="InfoReplyIp4.cs" />
-    <Compile Include="InfoDestination.cs" />
-    <Compile Include="InfoReply.cs" />
-    <Compile Include="NackFrag.cs" />
-    <Compile Include="HeartbeatFrag.cs" />
-    <Compile Include="Data.cs" />
-    <Compile Include="Heartbeat.cs" />
-    <Compile Include="DataFrag.cs" />
-    <Compile Include="SecureSubMessage.cs" />
-    <Compile Include="UnknownSubMessage.cs" />
     <Compile Include="tests\UnitTests.cs" />
+    <Compile Include="message\AckNack.cs" />
+    <Compile Include="message\Data.cs" />
+    <Compile Include="message\DataFrag.cs" />
+    <Compile Include="message\Gap.cs" />
+    <Compile Include="message\Heartbeat.cs" />
+    <Compile Include="message\HeartbeatFrag.cs" />
+    <Compile Include="message\IllegalMessageException.cs" />
+    <Compile Include="message\InfoDestination.cs" />
+    <Compile Include="message\InfoReply.cs" />
+    <Compile Include="message\InfoReplyIp4.cs" />
+    <Compile Include="message\InfoSource.cs" />
+    <Compile Include="message\InfoTimestamp.cs" />
+    <Compile Include="message\Message.cs" />
+    <Compile Include="message\NackFrag.cs" />
+    <Compile Include="message\Pad.cs" />
+    <Compile Include="message\RTPSByteBuffer.cs" />
+    <Compile Include="message\SecureSubMessage.cs" />
+    <Compile Include="message\Types.cs" />
+    <Compile Include="message\UnknownSubMessage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="tests\" />
-    <Folder Include="tests\New Folder\" />
     <Folder Include="message\" />
   </ItemGroup>
   <ItemGroup>
