@@ -35,26 +35,24 @@ namespace rtps {
         /// is an envelope for a full RTPS message.
         /// </summary>
         /// <returns> true, if only one submessage is encapsulated in SecuredPayload </returns>
-        public virtual bool singleSubMessageFlag() {
-            return (header.flags & 0x2) != 0;
+        public virtual bool SingleSubMessageFlag {
+            get {
+                return (header.flags & 0x2) != 0;
+            }
+            set {
+                if (value) {
+                    header.flags |= 0x2;
+                }
+                else {
+                    header.flags = (byte) (header.flags & ~0x2);
+                }                
+            }
         }
 
         public virtual SecurePayload SecurePayload => payload;
 
         public override void WriteTo(RTPSByteBuffer bb) {
             payload.writeTo(bb);
-        }
-
-        /// <summary>
-        /// Sets or resets the value of SingleSubMessage flag. </summary>
-        /// <param name="s"> whether to set or reset. </param>
-        public virtual void singleSubMessageFlag(bool s) {
-            if (s) {
-                header.flags |= 0x2;
-            }
-            else {
-                header.flags = (byte) (header.flags & ~0x2);
-            }
         }
     }
 

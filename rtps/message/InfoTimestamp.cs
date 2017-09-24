@@ -37,11 +37,11 @@ namespace rtps
 		/// InvalidateFlag is not set in the header.
 		/// </summary>
 		/// <returns> true, if invalidateFlag is set </returns>
-		public virtual bool invalidateFlag() => (header.flags & 0x2) != 0;
+		public bool invalidateFlag => (header.flags & 0x2) != 0;
 
 		private void readMessage(RTPSByteBuffer bb)
 		{
-			if (!invalidateFlag())
+			if (!invalidateFlag)
 			{
 				this.timestamp = new Time(bb);
 			}
@@ -49,7 +49,7 @@ namespace rtps
 
 		public override void WriteTo(RTPSByteBuffer bb)
 		{
-			if (!invalidateFlag())
+			if (!invalidateFlag)
 			{
 				timestamp.WriteTo(bb);
 			}

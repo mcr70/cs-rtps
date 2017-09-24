@@ -27,31 +27,27 @@ namespace rtps {
             readMessage(bb);
         }
 
-        public virtual bool inlineQosFlag() {
-            return (header.flags & 0x2) != 0;
-        }
+        public bool InlineQosFlag => (header.flags & 0x2) != 0;
+        
+        public bool KeyFlag => (header.flags & 0x4) != 0;    
 
-        public virtual bool keyFlag() {
-            return (header.flags & 0x4) != 0;
-        }
+        public EntityId ReaderId => readerId;
 
-        public virtual EntityId ReaderId => readerId;
+        public EntityId WriterId => writerId;
 
-        public virtual EntityId WriterId => writerId;
+        public SequenceNumber WriterSequenceNumber => writerSN;
 
-        public virtual SequenceNumber WriterSequenceNumber => writerSN;
+        public UInt32 FragmentStartingNumber => fragmentStartingNum;
 
-        public virtual UInt32 FragmentStartingNumber => fragmentStartingNum;
+        public UInt16 FragmentsInSubmessage => fragmentsInSubmessage;
 
-        public virtual UInt16 FragmentsInSubmessage => fragmentsInSubmessage;
+        public UInt16 FragmentSize => fragmentSize;
 
-        public virtual UInt16 FragmentSize => fragmentSize;
+        public UInt32 SampleSize => sampleSize;
 
-        public virtual UInt32 SampleSize => sampleSize;
+        public IList<Parameter> ParameterList => parameterList;
 
-        public virtual IList<Parameter> ParameterList => parameterList;
-
-        public virtual byte[] SerializedPayload => serializedPayload;
+        public byte[] SerializedPayload => serializedPayload;
 
         private void readMessage(RTPSByteBuffer bb) {
             long start_count = bb.Position; // start of bytes read so far from the
@@ -78,7 +74,7 @@ namespace rtps {
                 bb.read_octet(); // Skip unknown octets, @see 9.4.5.3.3 octetsToInlineQos
             }
 
-            if (inlineQosFlag()) {
+            if (InlineQosFlag()) {
                 readParameterList(bb);
             }
 
@@ -118,7 +114,7 @@ namespace rtps {
             bb.write_short(fragmentSize);
             bb.write_long(sampleSize);
 
-            if (inlineQosFlag()) {
+            if (InlineQosFlag()) {
                 writeParameterList(bb);
             }
 

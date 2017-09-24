@@ -115,17 +115,13 @@ namespace rtps {
         /// Gets the Header of this Message.
         /// </summary>
         /// <returns> Header </returns>
-        public virtual Header Header {
-            get { return header; }
-        }
+        public virtual Header Header => header;
 
         /// <summary>
         /// Gets all the SubMessages of this Message.
         /// </summary>
         /// <returns> List of SubMessages. Returned List is never null. </returns>
-        public virtual IList<SubMessage> SubMessages {
-            get { return submessages; }
-        }
+        public virtual IList<SubMessage> SubMessages => submessages;
 
         /// <summary>
         /// Writes this Message to given RTPSByteBuffer. During writing of each
@@ -136,58 +132,55 @@ namespace rtps {
         /// </summary>
         /// <param name="buffer"> RTPSByteBuffer to write to </param>
         /// <returns> true, if an overflow occured during write. </returns>
-        //public virtual bool writeTo(RTPSByteBuffer buffer)
-        //{
-        //	header.writeTo(buffer);
-        //	bool overFlowed = false;
+        public virtual bool WriteTo(RTPSByteBuffer buffer)
+        {
+        	header.writeTo(buffer);
+        	bool overFlowed = false;
 
-        //	int position = 0;
-        //	int subMessageCount = 0;
-        //	foreach (SubMessage msg in submessages)
-        //	{
-        //		int subMsgStartPosition = buffer.position();
+        	long position = 0;
+        	int subMessageCount = 0;
+        	foreach (SubMessage msg in submessages)
+        	{
+        		long subMsgStartPosition = buffer.Position;
 
-        //		try
-        //		{
-        //			SubMessageHeader hdr = msg.Header;
-        //			buffer.align(4);
-        //			buffer.Endianess = hdr.endiannessFlag(); // Set the endianess
-        //			hdr.writeTo(buffer);
+        		try
+        		{
+        			SubMessageHeader hdr = msg.Header;
+        			buffer.align(4);
+        			buffer.IsLittleEndian = hdr.EndiannessFlag(); // Set the endianess
+        			hdr.WriteTo(buffer);
 
-        //			position = buffer.position();
-        //			msg.writeTo(buffer);
-        //			int subMessageLength = buffer.position() - position;
+        			position = buffer.Position;
+        			msg.WriteTo(buffer);
+        			ushort subMessageLength = (ushort) (buffer.Position - position);
 
-        //			// Position to 'submessageLength' -2 is for short (2 bytes)
-        //			// buffers current position is not changed
-        //			buffer.Buffer.putShort(position - 2, (short) subMessageLength);
+        			// Position to 'submessageLength' -2 is for short (2 bytes)
+        			// buffers current position is not changed
+                    buffer.put_short(position - 2, subMessageLength);
+                    
+        			subMessageCount++;
+        		}
+        		catch (Exception)
+        		{
+        			buffer.Position = subMsgStartPosition;
+        			overFlowed = true;
+        			break;
+        		}
+        	}
 
-        //			subMessageCount++;
+        	// Length of last submessage is 0, @see 8.3.3.2.3 submessageLength
+        	if (subMessageCount > 0)
+        	{
+        		buffer.put_short(position - 2, 0);
+        	}
 
-        //			log.trace("SubMsg out: {}", msg);
-        //		}
-        //		catch (BufferOverflowException)
-        //		{
-        //			log.warn("Buffer overflow occured after {} succesful sub-message writes, dropping rest of the sub messages", subMessageCount);
-        //			buffer.Buffer.position(subMsgStartPosition);
-        //			overFlowed = true;
-        //			break;
-        //		}
-        //	}
-
-        //	// Length of last submessage is 0, @see 8.3.3.2.3 submessageLength
-        //	if (subMessageCount > 0)
-        //	{
-        //		buffer.Buffer.putShort(position - 2, (short) 0);
-        //	}
-
-        //	return overFlowed;
-        //}
+        	return overFlowed;
+        }
         /// <summary>
         /// Adds a new SubMessage to this Message. SubMessage must well formed.
         /// </summary>
         /// <param name="sm"> SubMessage to add </param>
-        public virtual void addSubMessage(SubMessage sm) {
+        public virtual void Add(SubMessage sm) {
             submessages.Add(sm);
         }
 
@@ -455,7 +448,7 @@ namespace rtps {
         /// Writes this SubMessageHeader into RTPSByteBuffer
         /// </summary>
         /// <param name="bb"> RTPSByteBuffer to write to </param>
-        public virtual void writeTo(RTPSByteBuffer bb) {
+        public virtual void WriteTo(RTPSByteBuffer bb) {
             bb.write_octet(kind);
             bb.write_octet(flags);
             bb.write_short(submessageLength);
@@ -472,15 +465,13 @@ namespace rtps {
         /// Get the length of the sub message.
         /// </summary>
         /// <returns> length of the sub message </returns>
-        public virtual int SubMessageLength {
-            get { return submessageLength; }
-        }
+        public virtual int Length => submessageLength;
 
         /// <summary>
         /// Get the kind of SubMessage
         /// </summary>
         /// <returns> kind </returns>
-        public virtual byte SubMessageKind => kind;
+        public virtual byte Kind => kind;
 
         public override string ToString() {
             StringBuilder sb = new StringBuilder("header[");

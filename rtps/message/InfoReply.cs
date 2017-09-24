@@ -35,7 +35,7 @@ namespace rtps {
                 unicastLocatorList.Add(loc);
             }
 
-            if (multicastFlag()) {
+            if (MulticastFlag()) {
                 numLocators = bb.read_long(); // ulong
                 for (int i = 0; i < numLocators; i++) {
                     Locator loc = new Locator(bb);
@@ -49,9 +49,8 @@ namespace rtps {
         /// Returns the MulticastFlag. If true, message contains MulticastLocatorList
         /// </summary>
         /// <returns> true, if message contains multicast locator </returns>
-        public virtual bool multicastFlag() {
-            return (header.flags & 0x2) != 0;
-        }
+        public bool MulticastFlag => (header.flags & 0x2) != 0;
+        
 
         /// <summary>
         /// Indicates an alternative set of unicast addresses that the Writer should
@@ -74,7 +73,7 @@ namespace rtps {
                 loc.WriteTo(bb);
             }
 
-            if (multicastFlag()) {
+            if (MulticastFlag()) {
                 bb.write_long((uint) multicastLocatorList.Count);
                 foreach (Locator loc in multicastLocatorList) {
                     loc.WriteTo(bb);

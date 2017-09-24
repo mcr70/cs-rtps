@@ -72,6 +72,13 @@ namespace rtps {
             writer.Write(i);
         }
 
+        public void put_short(long position, UInt16 i) {
+            long currentPosition = Position;
+            Position = position;
+            write_short(i);
+            Position = currentPosition;
+        }
+
         public void write_long(UInt32 i) {
             align(4);
             writer.Write(i);

@@ -36,7 +36,7 @@ namespace rtps {
             this.writerId = writerId;
             this.writerSN = new SequenceNumber(seqNum);
 
-            if (inlineQosParams != null && inlineQosParams.size() > 0) {
+            if (inlineQosParams != null && inlineQosParams.Count > 0) {
                 header.flags |= 0x2;
                 this.inlineQosParams = inlineQosParams;
             }
@@ -59,7 +59,7 @@ namespace rtps {
         /// <param name="smh"> </param>
         /// <param name="bb"> </param>
         internal Data(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
-            if (dataFlag() && keyFlag()) {
+            if (DataFlag() && KeyFlag()) {
                 // Should we just ignore this message instead
                 throw new System.InvalidOperationException(
                     "This version of protocol does not allow Data submessage to contain both serialized data and serialized key (9.4.5.3.1)");
@@ -88,11 +88,11 @@ namespace rtps {
                 // octetsToInlineQos
             }
 
-            if (inlineQosFlag()) {
+            if (InlineQosFlag) {
                 this.inlineQosParams = new ParameterList(bb);
             }
 
-            if (dataFlag() || keyFlag()) {
+            if (DataFlag || KeyFlag) {
                 bb.align(4); // Each submessage is aligned on 32-bit boundary, @see
                 // 9.4.1 Overall Structure
                 long end_count = bb.Position; // end of bytes read so far from the
@@ -117,9 +117,8 @@ namespace rtps {
         /// parameters that should be used to interpret the message.
         /// </summary>
         /// <returns> true, if inlineQos flag is set </returns>
-        public virtual bool inlineQosFlag() {
-            return (header.flags & 0x2) != 0;
-        }
+        public bool InlineQosFlag => (header.flags & 0x2) != 0;
+        
 
         /// <summary>
         /// Gets the inlineQos parameters if present. Inline QoS parameters are
@@ -135,18 +134,16 @@ namespace rtps {
         /// the serialized value of the data-object.
         /// </summary>
         /// <returns> true, data flag is set </returns>
-        public virtual bool dataFlag() {
-            return (header.flags & 0x4) != 0;
-        }
+        public bool DataFlag => (header.flags & 0x4) != 0;
+        
 
         /// <summary>
         /// Indicates to the Reader that the dataPayload submessage element contains
         /// the serialized value of the key of the data-object.
         /// </summary>
         /// <returns> true, if key flag is set </returns>
-        public virtual bool keyFlag() {
-            return (header.flags & 0x8) != 0;
-        }
+        public bool KeyFlag => (header.flags & 0x8) != 0;
+        
 
         /// <summary>
         /// Identifies the RTPS Reader entity that is being informed of the change to
@@ -183,11 +180,11 @@ namespace rtps {
             writerId.WriteTo(bb);
             writerSN.WriteTo(bb);
 
-            if (inlineQosFlag()) {
+            if (InlineQosFlag()) {
                 inlineQosParams.WriteTo(bb);
             }
 
-            if (dataFlag() || keyFlag()) {
+            if (DataFlag() || KeyFlag()) {
                 bb.align(4);
                 bb.write(dataEncapsulation.SerializedPayload);
             }
@@ -206,7 +203,7 @@ namespace rtps {
         public virtual StatusInfo StatusInfo {
             get {
                 StatusInfo sInfo = null;
-                if (inlineQosFlag()) {
+                if (InlineQosFlag()) {
                     sInfo = (StatusInfo) inlineQosParams.getParameter(ParameterId.PID_STATUS_INFO);
                 }
 
@@ -224,7 +221,7 @@ namespace rtps {
         public virtual ContentFilterInfo ContentFilterInfo {
             get {
                 ContentFilterInfo cfi = null;
-                if (inlineQosFlag()) {
+                if (InlineQosFlag()) {
                     cfi = (ContentFilterInfo) inlineQosParams.getParameter(ParameterId.PID_CONTENT_FILTER_INFO);
                 }
 
@@ -238,7 +235,7 @@ namespace rtps {
             sb.Append(", writerId: ").Append(WriterId);
             sb.Append(", writerSN: ").Append(writerSN);
 
-            if (inlineQosFlag()) {
+            if (InlineQosFlag()) {
                 sb.Append(", inline QoS: ").Append(inlineQosParams);
             }
 
