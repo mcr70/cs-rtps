@@ -35,7 +35,7 @@ namespace rtps {
                 unicastLocatorList.Add(loc);
             }
 
-            if (MulticastFlag()) {
+            if (MulticastFlag) {
                 numLocators = bb.read_long(); // ulong
                 for (int i = 0; i < numLocators; i++) {
                     Locator loc = new Locator(bb);
@@ -73,7 +73,7 @@ namespace rtps {
                 loc.WriteTo(bb);
             }
 
-            if (MulticastFlag()) {
+            if (MulticastFlag) {
                 bb.write_long((uint) multicastLocatorList.Count);
                 foreach (Locator loc in multicastLocatorList) {
                     loc.WriteTo(bb);

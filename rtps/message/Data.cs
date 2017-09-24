@@ -59,7 +59,7 @@ namespace rtps {
         /// <param name="smh"> </param>
         /// <param name="bb"> </param>
         internal Data(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
-            if (DataFlag() && KeyFlag()) {
+            if (DataFlag && KeyFlag) {
                 // Should we just ignore this message instead
                 throw new System.InvalidOperationException(
                     "This version of protocol does not allow Data submessage to contain both serialized data and serialized key (9.4.5.3.1)");
@@ -180,11 +180,11 @@ namespace rtps {
             writerId.WriteTo(bb);
             writerSN.WriteTo(bb);
 
-            if (InlineQosFlag()) {
+            if (InlineQosFlag) {
                 inlineQosParams.WriteTo(bb);
             }
 
-            if (DataFlag() || KeyFlag()) {
+            if (DataFlag || KeyFlag) {
                 bb.align(4);
                 bb.write(dataEncapsulation.SerializedPayload);
             }
@@ -203,7 +203,7 @@ namespace rtps {
         public virtual StatusInfo StatusInfo {
             get {
                 StatusInfo sInfo = null;
-                if (InlineQosFlag()) {
+                if (InlineQosFlag) {
                     sInfo = (StatusInfo) inlineQosParams.getParameter(ParameterId.PID_STATUS_INFO);
                 }
 
@@ -221,7 +221,7 @@ namespace rtps {
         public virtual ContentFilterInfo ContentFilterInfo {
             get {
                 ContentFilterInfo cfi = null;
-                if (InlineQosFlag()) {
+                if (InlineQosFlag) {
                     cfi = (ContentFilterInfo) inlineQosParams.getParameter(ParameterId.PID_CONTENT_FILTER_INFO);
                 }
 
@@ -235,7 +235,7 @@ namespace rtps {
             sb.Append(", writerId: ").Append(WriterId);
             sb.Append(", writerSN: ").Append(writerSN);
 
-            if (InlineQosFlag()) {
+            if (InlineQosFlag) {
                 sb.Append(", inline QoS: ").Append(inlineQosParams);
             }
 

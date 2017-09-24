@@ -131,7 +131,7 @@ namespace rtps {
 
         public override string ToString() {
             return base.ToString() + " #" + count + ", " + readerId + ", " + writerId + ", " + firstSN + ", " + lastSN +
-                   ", F:" + finalFlag() + ", L:" + livelinessFlag();
+                   ", F:" + FinalFlag + ", L:" + LivelinessFlag;
         }
     }
 }

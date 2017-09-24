@@ -74,7 +74,7 @@ namespace rtps {
                 bb.read_octet(); // Skip unknown octets, @see 9.4.5.3.3 octetsToInlineQos
             }
 
-            if (InlineQosFlag()) {
+            if (InlineQosFlag) {
                 readParameterList(bb);
             }
 
@@ -114,7 +114,7 @@ namespace rtps {
             bb.write_short(fragmentSize);
             bb.write_long(sampleSize);
 
-            if (InlineQosFlag()) {
+            if (InlineQosFlag) {
                 writeParameterList(bb);
             }
 
