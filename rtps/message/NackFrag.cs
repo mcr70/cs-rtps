@@ -1,6 +1,6 @@
 using System;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// The NackFrag Submessage is used to communicate the state of a Reader to a
     /// Writer. When a data change is sent as a series of fragments, the NackFrag
@@ -21,7 +21,7 @@ namespace rtps {
         private SequenceNumberSet fragmentNumberState;
         private UInt32 count;
 
-        public NackFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        public NackFrag(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -60,7 +60,7 @@ namespace rtps {
         /// <returns> a count </returns>
         public virtual UInt32 Count => count;
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             this.readerId = new EntityId(bb);
             this.writerId = new EntityId(bb);
             this.writerSN = new SequenceNumber(bb);
@@ -69,7 +69,7 @@ namespace rtps {
             this.count = bb.read_long();
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             readerId.WriteTo(bb);
             writerId.WriteTo(bb);
             writerSN.WriteTo(bb);

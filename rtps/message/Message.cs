@@ -1,8 +1,8 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This class represents a RTPS message.
     /// 
@@ -35,7 +35,7 @@ namespace rtps {
         /// <exception cref="IllegalMessageException"> If message could not be parsed </exception>
         //JAVA TO C# CONVERTER WARNING: Method 'throws' clauses are not available in .NET:
         //ORIGINAL LINE: public Message(net.sf.jrtps.transport.RTPSByteBuffer bb) throws IllegalMessageException
-        public Message(RTPSByteBuffer bb) {
+        public Message(RtpsByteBuffer bb) {
             header = new Header(bb);
 
             while (bb.Remaining > 0) {
@@ -132,7 +132,7 @@ namespace rtps {
         /// </summary>
         /// <param name="buffer"> RTPSByteBuffer to write to </param>
         /// <returns> true, if an overflow occured during write. </returns>
-        public virtual bool WriteTo(RTPSByteBuffer buffer)
+        public virtual bool WriteTo(RtpsByteBuffer buffer)
         {
         	header.writeTo(buffer);
         	bool overFlowed = false;
@@ -252,7 +252,7 @@ namespace rtps {
         /// </summary>
         /// <param name="bb"> </param>
         /// <exception cref="IllegalMessageException">  </exception>
-        internal Header(RTPSByteBuffer bb) {
+        internal Header(RtpsByteBuffer bb) {
             if (bb.Remaining < 20) {
                 throw new IllegalMessageException("Message length must be at least 20 bytes, was " + bb.Position);
             }
@@ -273,7 +273,7 @@ namespace rtps {
         /// Writer this Header to given RTPSByteBuffer.
         /// </summary>
         /// <param name="bb"> RTPSByteBuffer to write to </param>
-        public virtual void writeTo(RTPSByteBuffer bb) {
+        public virtual void writeTo(RtpsByteBuffer bb) {
             bb.write(hdrStart);
             version.WriteTo(bb);
             vendorId.WriteTo(bb);
@@ -380,7 +380,7 @@ namespace rtps {
         /// Writes This SubMessage into RTPSByteBuffer
         /// </summary>
         /// <param name="bb">RTPSByteBuffer</param>
-        public abstract void WriteTo(RTPSByteBuffer bb);
+        public abstract void WriteTo(RtpsByteBuffer bb);
 
         /// <summary>
         /// Writes this SubMessage into given RTPSByteBuffer.
@@ -436,7 +436,7 @@ namespace rtps {
         /// Constructs SubMessageHeader by reading from RTPSByteBuffer.
         /// </summary>
         /// <param name="bb"> </param>
-        internal SubMessageHeader(RTPSByteBuffer bb) {
+        internal SubMessageHeader(RtpsByteBuffer bb) {
             kind = bb.read_octet();
             flags = bb.read_octet();
             bb.IsLittleEndian = EndiannessFlag();
@@ -448,7 +448,7 @@ namespace rtps {
         /// Writes this SubMessageHeader into RTPSByteBuffer
         /// </summary>
         /// <param name="bb"> RTPSByteBuffer to write to </param>
-        public virtual void WriteTo(RTPSByteBuffer bb) {
+        public virtual void WriteTo(RtpsByteBuffer bb) {
             bb.write_octet(kind);
             bb.write_octet(flags);
             bb.write_short(submessageLength);

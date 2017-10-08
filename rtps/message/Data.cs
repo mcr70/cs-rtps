@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This Submessage notifies the RTPS Reader of a change to a data-object
     /// belonging to the RTPS Writer. The possible changes include both changes in
@@ -58,7 +58,7 @@ namespace rtps {
         /// </summary>
         /// <param name="smh"> </param>
         /// <param name="bb"> </param>
-        internal Data(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal Data(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             if (DataFlag && KeyFlag) {
                 // Should we just ignore this message instead
                 throw new System.InvalidOperationException(
@@ -170,7 +170,7 @@ namespace rtps {
 
         public virtual UInt16 ExtraFlags => extraFlags;
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_short(extraFlags);
 
             UInt16 octets_to_inline_qos = 4 + 4 + 8; // EntityId.LENGTH + EntityId.LENGTH + SequenceNumber.LENGTH;

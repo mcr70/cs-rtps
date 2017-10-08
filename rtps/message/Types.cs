@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using NUnit.Framework.Constraints;
 
-namespace rtps {
+namespace rtps.message {
     public abstract class Type {
         /// <summary>
         /// Writes this type into RTPSByteBuffer
         /// </summary>
         /// <param name="bb">RTPSByteBuffer</param>
-        public abstract void WriteTo(RTPSByteBuffer bb);
+        public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
+    public class Guid {
+        public EntityId EntityId { get; set; }
+        public GuidPrefix Prefix { get; set; }
+    }
+    
     public class GuidPrefix : Type {
         public static readonly GuidPrefix GUIDPREFIX_UNKNOWN = new GuidPrefix();
 
@@ -18,11 +22,11 @@ namespace rtps {
             throw new NotImplementedException();
         }
 
-        public GuidPrefix(RTPSByteBuffer bb) {
+        public GuidPrefix(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
@@ -36,12 +40,12 @@ namespace rtps {
             bytes = new byte[] {2, 1};
         }
 
-        public ProtocolVersion(RTPSByteBuffer bb) {
+        public ProtocolVersion(RtpsByteBuffer bb) {
             bytes = new byte[2];
             bb.read(bytes);
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write(bytes);
         }
     }
@@ -56,17 +60,17 @@ namespace rtps {
             this.bytes = bytes;
         }
 
-        public VendorId(RTPSByteBuffer bb) : base(ParameterId.PID_VENDOR_ID) {
+        public VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDOR_ID) {
             ReadFrom(bb);
         }
 
 
-        public override void ReadFrom(RTPSByteBuffer bb) {
+        public override void ReadFrom(RtpsByteBuffer bb) {
             bytes = new byte[2];
             bb.read(bytes);
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write(bytes);
         }
     }
@@ -83,7 +87,7 @@ namespace rtps {
             this.entityKind = entityKind;
         }
 
-        internal EntityId(RTPSByteBuffer bb) {
+        internal EntityId(RtpsByteBuffer bb) {
             byte[] eKey = new byte[3];
             bb.read(eKey);
             int kind = bb.read_octet();
@@ -101,7 +105,7 @@ namespace rtps {
             return (entityKind & 0xc0) == 0x40; // @see 9.3.1.2
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write(entityKey);
             bb.write_octet(entityKind);
         }
@@ -140,7 +144,7 @@ namespace rtps {
         }
 
 
-        public SequenceNumberSet(RTPSByteBuffer bb) {
+        public SequenceNumberSet(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
 
@@ -149,7 +153,7 @@ namespace rtps {
             this.bitmaps = bitMaps;
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
@@ -157,7 +161,7 @@ namespace rtps {
     public class SequenceNumber : Type {
         private long sn;
 
-        public SequenceNumber(RTPSByteBuffer bb) {
+        public SequenceNumber(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
 
@@ -169,7 +173,7 @@ namespace rtps {
             return sn;
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
     }
@@ -182,7 +186,7 @@ namespace rtps {
         private uint seconds;
         private uint fraction;
         
-        public Time(RTPSByteBuffer bb) {
+        public Time(RtpsByteBuffer bb) {
             seconds = bb.read_long() & 0x7fffffff; // long
             fraction = bb.read_long(); // ulong
         }
@@ -201,7 +205,7 @@ namespace rtps {
         }
 
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long(seconds);
             bb.write_long(fraction);
         }
@@ -212,7 +216,7 @@ namespace rtps {
         private uint port;
         private byte[] address;
 
-        public Locator(RTPSByteBuffer bb) {
+        public Locator(RtpsByteBuffer bb) {
             kind = bb.read_long();
             port = bb.read_long();
             address = new byte[16];
@@ -220,7 +224,7 @@ namespace rtps {
             bb.read(address);
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long(kind);
             bb.write_long(port);
             bb.write(address);
@@ -231,12 +235,12 @@ namespace rtps {
         private uint address;
         private uint port;
 
-        public LocatorUDPv4_t(RTPSByteBuffer bb) {
+        public LocatorUDPv4_t(RtpsByteBuffer bb) {
             address = bb.read_long();
             port = bb.read_long();
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long(address);
             bb.write_long(port);
         }
@@ -245,7 +249,7 @@ namespace rtps {
     public class ParameterList : Type {
         private List<Parameter> _parameters = new List<Parameter>();
 
-        public ParameterList(RTPSByteBuffer bb) {
+        public ParameterList(RtpsByteBuffer bb) {
             while (true) {
                 long pos1 = bb.Position;
 
@@ -259,7 +263,7 @@ namespace rtps {
             }
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.align(4); // @see 9.4.2.11
 
             _parameters.Add(new Sentinel()); // Sentinel must be the last Parameter
@@ -310,11 +314,11 @@ namespace rtps {
         public Sentinel() : base(ParameterId.PID_SENTINEL) {
         }
 
-        public override void ReadFrom(RTPSByteBuffer bb) {
+        public override void ReadFrom(RtpsByteBuffer bb) {
             // No Content
         }
 
-        public override void WriteTo(RTPSByteBuffer buffer) {
+        public override void WriteTo(RtpsByteBuffer buffer) {
             // No Content
         }
     }
@@ -323,11 +327,11 @@ namespace rtps {
         public StatusInfo() : base(ParameterId.PID_STATUS_INFO) {
         }
 
-        public override void ReadFrom(RTPSByteBuffer bb) {
+        public override void ReadFrom(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
 
-        public override void WriteTo(RTPSByteBuffer buffer) {
+        public override void WriteTo(RtpsByteBuffer buffer) {
             throw new NotImplementedException();
         }
     }
@@ -339,7 +343,7 @@ namespace rtps {
         public ContentFilterInfo() : base(ParameterId.PID_CONTENT_FILTER_INFO) {
         }
 
-        public override void ReadFrom(RTPSByteBuffer bb) {
+        public override void ReadFrom(RtpsByteBuffer bb) {
             this.bitmaps = new uint[bb.read_long()];
             for (int i = 0; i < bitmaps.Length; i++) {
                 bitmaps[i] = bb.read_long();
@@ -351,7 +355,7 @@ namespace rtps {
             }
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long((uint) bitmaps.Length);
             for (int i = 0; i < bitmaps.Length; i++) {
                 bb.write_long(bitmaps[i]);
@@ -368,7 +372,7 @@ namespace rtps {
 
             public byte[] Bytes => bytes;
 
-            internal Signature(RTPSByteBuffer bb) {
+            internal Signature(RtpsByteBuffer bb) {
                 bytes = new byte[15];
                 bb.read(bytes);
             }
@@ -389,12 +393,12 @@ namespace rtps {
             Id = id;
         }
 
-        public abstract void ReadFrom(RTPSByteBuffer bb);
-        public abstract void WriteTo(RTPSByteBuffer buffer);
+        public abstract void ReadFrom(RtpsByteBuffer bb);
+        public abstract void WriteTo(RtpsByteBuffer buffer);
     }
 
     public class ParameterFactory {
-        internal static Parameter readParameter(RTPSByteBuffer bb) {
+        internal static Parameter readParameter(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
     }

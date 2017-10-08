@@ -1,4 +1,4 @@
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// The purpose of this Submessage is to allow the introduction of any padding
     /// necessary to meet any desired memory alignment requirements. Its has no other
@@ -14,16 +14,16 @@ namespace rtps {
 
         private byte[] bytes;
 
-        public Pad(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        public Pad(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             this.bytes = new byte[header.submessageLength];
             bb.read(bytes);
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write(bytes);
         }
     }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace rtps {
+namespace rtps.message {
     [Serializable]
     internal class IllegalMessageException : Exception {
         private object p;

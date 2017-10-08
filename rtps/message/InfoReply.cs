@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This message is sent from an RTPS Reader to an RTPS Writer. It contains
     /// explicit information on where to send a reply to the Submessages that follow
@@ -27,7 +27,7 @@ namespace rtps {
             }
         }
 
-        internal InfoReply(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal InfoReply(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             long numLocators = bb.read_long(); // ulong
             for (int i = 0; i < numLocators; i++) {
                 Locator loc = new Locator(bb);
@@ -67,7 +67,7 @@ namespace rtps {
         /// <returns> a List of Locators </returns>
         public virtual IList<Locator> MulticastLocatorList => multicastLocatorList;
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long((uint) unicastLocatorList.Count);
             foreach (Locator loc in unicastLocatorList) {
                 loc.WriteTo(bb);

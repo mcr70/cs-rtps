@@ -1,6 +1,6 @@
 using System;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This Submessage is used to communicate the state of a Reader to a Writer. The
     /// Submessage allows the Reader to inform the Writer about the sequence numbers
@@ -30,7 +30,7 @@ namespace rtps {
             this.count = count;
         }
 
-        internal AckNack(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal AckNack(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -95,14 +95,14 @@ namespace rtps {
             internal set { count = value; }
         }
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             this.readerId = new EntityId(bb);
             this.writerId = new EntityId(bb);
             this.readerSNState = new SequenceNumberSet(bb);
             this.count = bb.read_long();
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             readerId.WriteTo(bb);
             writerId.WriteTo(bb);
             readerSNState.WriteTo(bb);

@@ -1,4 +1,4 @@
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This message modifies the logical source of the Submessages that follow.
     /// 
@@ -20,7 +20,7 @@ namespace rtps {
             this.guidPrefix = guidPrefix;
         }
 
-        internal InfoSource(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal InfoSource(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -44,7 +44,7 @@ namespace rtps {
         /// <returns> GuidPrefix </returns>
         public virtual GuidPrefix GuidPrefix => guidPrefix;
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             bb.read_long(); // unused
 
             protocolVersion = new ProtocolVersion(bb);
@@ -52,7 +52,7 @@ namespace rtps {
             guidPrefix = new GuidPrefix(bb);
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_long(0);
             protocolVersion.WriteTo(bb);
             vendorId.WriteTo(bb);

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This Submessage is sent from an RTPS Writer to an RTPS Reader and indicates
     /// to the RTPS Reader that a range of sequence numbers is no longer relevant.
@@ -21,7 +21,7 @@ namespace rtps {
         private SequenceNumber gapStart;
         private SequenceNumberSet gapList;
 
-        internal Gap(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal Gap(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             this.readerId = new EntityId(bb);
             this.writerId = new EntityId(bb);
             this.gapStart = new SequenceNumber(bb);
@@ -86,7 +86,7 @@ namespace rtps {
         public virtual SequenceNumberSet GapList => gapList;
 
 
-        public  override void WriteTo(RTPSByteBuffer bb) {
+        public  override void WriteTo(RtpsByteBuffer bb) {
             readerId.WriteTo(bb);
             writerId.WriteTo(bb);
             gapStart.WriteTo(bb);

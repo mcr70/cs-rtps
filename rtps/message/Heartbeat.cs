@@ -1,6 +1,6 @@
 using System;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This message is sent from an RTPS Writer to an RTPS Reader to communicate the
     /// sequence numbers of changes that the Writer has available.
@@ -29,7 +29,7 @@ namespace rtps {
             header.flags |= 2; // set FinalFlag. No response needed.
         }
 
-        internal Heartbeat(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal Heartbeat(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -111,7 +111,7 @@ namespace rtps {
         /// <returns> a count </returns>
         public virtual UInt32 Count => count;
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             this.readerId = new EntityId(bb);
             this.writerId = new EntityId(bb);
             this.firstSN = new SequenceNumber(bb);
@@ -120,7 +120,7 @@ namespace rtps {
             this.count = bb.read_long();
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             readerId.WriteTo(bb);
             writerId.WriteTo(bb);
             firstSN.WriteTo(bb);

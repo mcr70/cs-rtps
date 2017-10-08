@@ -1,6 +1,6 @@
 using System;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// SecureSubMessage is used to wrap one or more RTPS submessages.
     /// Contents of wrapped submessages are secured as specified by 
@@ -17,7 +17,7 @@ namespace rtps {
             this.payload = payload;
         }
 
-        internal SecureSubMessage(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal SecureSubMessage(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             UInt32 transformationKind = bb.read_long();
             byte[] trasformationId = new byte[8];
             bb.read(trasformationId);
@@ -51,7 +51,7 @@ namespace rtps {
 
         public virtual SecurePayload SecurePayload => payload;
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             payload.writeTo(bb);
         }
     }
@@ -71,7 +71,7 @@ namespace rtps {
             this.cipherText = cipherText;
         }
 
-        internal void writeTo(RTPSByteBuffer bb) {
+        internal void writeTo(RtpsByteBuffer bb) {
             throw new NotImplementedException();
         }
     }

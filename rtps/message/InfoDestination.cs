@@ -1,4 +1,4 @@
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// This message is sent from an RTPS Writer to an RTPS Reader to modify the
     /// GuidPrefix used to interpret the Reader entityIds appearing in the
@@ -33,7 +33,7 @@ namespace rtps {
         /// </summary>
         /// <param name="smh"> </param>
         /// <param name="bb"> </param>
-        internal InfoDestination(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal InfoDestination(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             this.guidPrefix = new GuidPrefix(bb);
         }
 
@@ -45,7 +45,7 @@ namespace rtps {
         /// <returns> GuidPrefix </returns>
         public virtual GuidPrefix GuidPrefix => guidPrefix;
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             guidPrefix.WriteTo(bb);
         }
 

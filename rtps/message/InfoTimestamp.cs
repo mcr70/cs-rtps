@@ -1,4 +1,4 @@
-namespace rtps
+namespace rtps.message
 {
 	/// <summary>
 	/// Provides a source timestamp for subsequent Entity Submessages. In order to
@@ -21,7 +21,7 @@ namespace rtps
 		/// </summary>
 		private Time timestamp;
 
-		public InfoTimestamp(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
+		public InfoTimestamp(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh)
 		{
 			readMessage(bb);
 		}
@@ -39,7 +39,7 @@ namespace rtps
 		/// <returns> true, if invalidateFlag is set </returns>
 		public bool invalidateFlag => (header.flags & 0x2) != 0;
 
-		private void readMessage(RTPSByteBuffer bb)
+		private void readMessage(RtpsByteBuffer bb)
 		{
 			if (!invalidateFlag)
 			{
@@ -47,7 +47,7 @@ namespace rtps
 			}
 		}
 
-		public override void WriteTo(RTPSByteBuffer bb)
+		public override void WriteTo(RtpsByteBuffer bb)
 		{
 			if (!invalidateFlag)
 			{

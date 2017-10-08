@@ -1,4 +1,4 @@
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// The InfoReplyIp4 Submessage is an additional Submessage introduced by the UDP
     /// PSM. Its use and interpretation are identical to those of an InfoReply
@@ -24,7 +24,7 @@ namespace rtps {
             }
         }
 
-        internal InfoReplyIp4(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        internal InfoReplyIp4(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -48,7 +48,7 @@ namespace rtps {
         /// <returns> <seealso cref="LocatorUDPv4_t"/> or null if no multicast locator is present </returns>
         public virtual LocatorUDPv4_t MulticastLocator => multicastLocator;
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             unicastLocator = new LocatorUDPv4_t(bb);
 
             if (multicastFlag()) {
@@ -56,7 +56,7 @@ namespace rtps {
             }
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             unicastLocator.WriteTo(bb);
             multicastLocator.WriteTo(bb);
         }

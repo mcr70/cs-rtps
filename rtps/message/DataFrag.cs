@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace rtps {
+namespace rtps.message {
     /// <summary>
     /// see 8.3.7.3 DataFrag
     /// 
@@ -23,7 +23,7 @@ namespace rtps {
         private IList<Parameter> parameterList = new List<Parameter>();
         private byte[] serializedPayload;
 
-        public DataFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh) {
+        public DataFrag(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh) {
             readMessage(bb);
         }
 
@@ -49,7 +49,7 @@ namespace rtps {
 
         public byte[] SerializedPayload => serializedPayload;
 
-        private void readMessage(RTPSByteBuffer bb) {
+        private void readMessage(RtpsByteBuffer bb) {
             long start_count = bb.Position; // start of bytes read so far from the
             // beginning
 
@@ -88,7 +88,7 @@ namespace rtps {
         /// <param name="bb"> </param>
         /// <exception cref="IOException"> </exception>
         /// <seealso cref= 9.4.2.11 ParameterList </seealso>
-        private void readParameterList(RTPSByteBuffer bb) {
+        private void readParameterList(RtpsByteBuffer bb) {
             while (true) {
                 bb.align(4);
                 Parameter param = ParameterFactory.readParameter(bb);
@@ -99,7 +99,7 @@ namespace rtps {
             }
         }
 
-        public override void WriteTo(RTPSByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             bb.write_short(extraFlags);
 
             UInt16 octets_to_inline_qos = 4 + 4 + 8 + 4 + 2 + 2 + 4;
@@ -121,7 +121,7 @@ namespace rtps {
             bb.write(serializedPayload); // TODO: check this
         }
 
-        private void writeParameterList(RTPSByteBuffer buffer) {
+        private void writeParameterList(RtpsByteBuffer buffer) {
             foreach (Parameter param in parameterList) {
                 param.WriteTo(buffer);
             }

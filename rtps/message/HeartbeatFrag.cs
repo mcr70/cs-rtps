@@ -1,6 +1,6 @@
 using System;
 
-namespace rtps
+namespace rtps.message
 {
 	/// <summary>
 	/// When fragmenting data and until all fragments are available, the
@@ -51,7 +51,7 @@ namespace rtps
 		/// </summary>
 		private UInt32 count;
 
-		public HeartbeatFrag(SubMessageHeader smh, RTPSByteBuffer bb) : base(smh)
+		public HeartbeatFrag(SubMessageHeader smh, RtpsByteBuffer bb) : base(smh)
 		{
 			readMessage(bb);
 		}
@@ -66,7 +66,7 @@ namespace rtps
 
 		public virtual UInt32 Count => count;
 
-		private void readMessage(RTPSByteBuffer bb)
+		private void readMessage(RtpsByteBuffer bb)
 		{
 			this.readerId = new EntityId(bb);
 			this.writerId = new EntityId(bb);
@@ -75,7 +75,7 @@ namespace rtps
 			this.count = bb.read_long();
 		}
 
-		public override void WriteTo(RTPSByteBuffer bb)
+		public override void WriteTo(RtpsByteBuffer bb)
 		{
 			readerId.WriteTo(bb);
 			writerId.WriteTo(bb);
