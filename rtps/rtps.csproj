@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -28,12 +28,21 @@
     <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="*.cs" />
+    <Compile Include="message\builtin\DiscoveredData.cs" />
+    <Compile Include="message\builtin\ParticipantData.cs" />
+    <Compile Include="message\builtin\PublicationData.cs" />
+    <Compile Include="message\builtin\SubscriptionData.cs" />
+    <Compile Include="message\builtin\TopicData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="tests\UnitTests.cs" />
     <Compile Include="message\AckNack.cs" />
@@ -51,7 +60,7 @@
     <Compile Include="message\Message.cs" />
     <Compile Include="message\NackFrag.cs" />
     <Compile Include="message\Pad.cs" />
-    <Compile Include="message\RTPSByteBuffer.cs" />
+    <Compile Include="message\RtpsByteBuffer.cs" />
     <Compile Include="message\SecureSubMessage.cs" />
     <Compile Include="message\Types.cs" />
     <Compile Include="message\UnknownSubMessage.cs" />
@@ -59,9 +68,6 @@
   <ItemGroup>
     <Folder Include="tests\" />
     <Folder Include="message\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
