@@ -59,8 +59,20 @@ namespace rtps.message {
             _stream.Read(bytes, 0, bytes.Length);
         }
 
+        public void read(uint[] longs) {
+            for (int i = 0; i < longs.Length; i++) {
+                longs[i] = read_long();
+            }
+        }
+
         public void write(byte[] bytes) {
             _stream.Write(bytes, 0, bytes.Length);
+        }
+        
+        public void write(uint[] longs) {
+            for (int i = 0; i < longs.Length; i++) {
+                write_long(longs[i]);
+            }
         }
 
         public void write_octet(byte i) {

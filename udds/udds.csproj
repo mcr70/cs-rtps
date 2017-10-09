@@ -35,6 +35,7 @@
   <ItemGroup>
     <Compile Include="DataReader.cs" />
     <Compile Include="DataWriter.cs" />
+    <Compile Include="Entity.cs" />
     <Compile Include="Participant.cs" />
     <Compile Include="tests\UnitTests.cs" />
   </ItemGroup>
@@ -48,6 +49,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\rtps\rtps.csproj">
+      <Project>{0d76d14e-2a97-4901-93cd-eb0ed903502d}</Project>
+      <Name>rtps</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

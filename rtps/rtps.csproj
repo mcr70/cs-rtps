@@ -40,6 +40,8 @@
     <Compile Include="*.cs" />
     <Compile Include="message\builtin\DiscoveredData.cs" />
     <Compile Include="message\builtin\ParticipantData.cs" />
+    <Compile Include="message\builtin\ParticipantMessage.cs" />
+    <Compile Include="message\builtin\ParticipantStatelessMessage.cs" />
     <Compile Include="message\builtin\PublicationData.cs" />
     <Compile Include="message\builtin\SubscriptionData.cs" />
     <Compile Include="message\builtin\TopicData.cs" />

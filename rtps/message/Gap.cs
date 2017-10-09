@@ -33,7 +33,7 @@ namespace rtps.message {
             this.readerId = readerId;
             this.writerId = writerId;
             this.gapStart = new SequenceNumber(gapStart);
-            this.gapList = new SequenceNumberSet(gapEnd + 1, new int[] {0x0});
+            this.gapList = new SequenceNumberSet(gapEnd + 1, new uint[] {0x0});
         }
 
         /// <summary>

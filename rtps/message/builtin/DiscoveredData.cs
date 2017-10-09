@@ -1,6 +1,4 @@
-﻿using rtps.message;
-
-namespace rtps.builtin {
+﻿namespace rtps.message.builtin {
     public class DiscoveredData {
         public Guid BuiltinTopicKey { get; set; }
     }

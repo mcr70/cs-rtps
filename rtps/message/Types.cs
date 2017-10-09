@@ -1,40 +1,89 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace rtps.message {
+using rtps.message;
+
+namespace rtps {
+    internal static class ExtensionMethods {
+        internal static int GetByteArrayHashCode(this byte[] array) {
+            unchecked {
+                int hash = 17;
+                foreach (var value in array) {
+                    hash = hash * 23 + value.GetHashCode();            
+                }
+
+                return hash;
+            }
+        }
+    }
+    
+    
     public abstract class Type {
         /// <summary>
-        /// Writes this type into RTPSByteBuffer
+        /// Writes this type into RtpsByteBuffer
         /// </summary>
-        /// <param name="bb">RTPSByteBuffer</param>
+        /// <param name="bb">RtpsByteBuffer</param>
         public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
     public class Guid {
-        public EntityId EntityId { get; set; }
-        public GuidPrefix Prefix { get; set; }
+        public EntityId EntityId { get; }
+        public GuidPrefix Prefix { get; }
+        
+        public Guid(GuidPrefix prefix, EntityId eid) {
+            Prefix = prefix;
+            EntityId = eid;
+        }
+
+        public override int GetHashCode() {
+            return Prefix.GetHashCode() ^ EntityId.GetHashCode();
+        }
+
+        public override bool Equals(object other) {
+            if (other != null && other.GetType() == GetType()) {
+                var otherGuid = (Guid)other;
+                return Prefix.Equals(otherGuid.Prefix) && EntityId.Equals(otherGuid.EntityId);
+            }
+            
+            return false;
+        }
     }
     
     public class GuidPrefix : Type {
         public static readonly GuidPrefix GUIDPREFIX_UNKNOWN = new GuidPrefix();
-
-        public GuidPrefix() {
-            throw new NotImplementedException();
+        private readonly byte[] bytes;
+        
+        private GuidPrefix() {
+            bytes = new byte[12];
         }
 
         public GuidPrefix(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+            bytes = new byte[12];
+            bb.read(bytes);
         }
 
         public override void WriteTo(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+            bb.write(bytes);
+        }
+
+        public override bool Equals(object other) {
+            if (other != null && GetType() == other.GetType()) {
+                GuidPrefix otherPrefix = (GuidPrefix) other;
+                return bytes.SequenceEqual(otherPrefix.bytes);
+            }
+            return false;
+        }
+        
+        public override int GetHashCode() {
+            return bytes.GetByteArrayHashCode();
         }
     }
 
     public class ProtocolVersion : Type {
         public static readonly ProtocolVersion PROTOCOLVERSION_2_1 = new ProtocolVersion();
 
-        private byte[] bytes;
+        private readonly byte[] bytes;
 
         private ProtocolVersion() {
             bytes = new byte[] {2, 1};
@@ -76,45 +125,79 @@ namespace rtps.message {
     }
 
     public class EntityId : Type {
-        private byte[] entityKey;
+        public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_WRITER =
+            new EntityId(new byte[] { 0, 1, 0 }, 0xc2);
+
+        public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_WRITER =
+            new EntityId(new byte[] { 0, 2, 0 }, 0xc2);
+        public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_WRITER =
+            new EntityId(new byte[] { 0, 2, 1 }, 0xc2); // from security
+
+        public static readonly EntityId SEDP_BUILTIN_TOPIC_WRITER = 
+            new EntityId(new byte[] { 0, 0, 2 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_WRITER =
+            new EntityId(new byte[] { 0, 0, 3 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_WRITER = 
+            new EntityId(new byte[] { 0, 0, 4 }, 0xc2);
+
+        private readonly byte[] _entityKey;
 
         // 0x02:writer_key, 0x03:writer_no_key,
         // 0x04:reader_no_key, 0x07:reader_key
-        private byte entityKind;
+        private readonly byte _entityKind;
 
-        private EntityId(byte[] entityKey, byte entityKind) {
-            this.entityKey = entityKey;
-            this.entityKind = entityKind;
+
+        public EntityId(byte[] entityKey, byte entityKind) {
+            _entityKey = entityKey;
+            _entityKind = entityKind;
         }
 
         internal EntityId(RtpsByteBuffer bb) {
-            byte[] eKey = new byte[3];
-            bb.read(eKey);
-            int kind = bb.read_octet();
+            _entityKey = new byte[3];
+            bb.read(_entityKey);
+            _entityKind = bb.read_octet();
         }
 
         public bool IsBuiltinEntity() {
-            return (entityKind & 0xc0) == 0xc0; // @see 9.3.1.2
+            return (_entityKind & 0xc0) == 0xc0; // @see 9.3.1.2
         }
 
         public bool IsUserDefinedEntity() {
-            return (entityKind & 0xc0) == 0x00; // @see 9.3.1.2
+            return (_entityKind & 0xc0) == 0x00; // @see 9.3.1.2
         }
 
         public bool IsVendorSpecifiEntity() {
-            return (entityKind & 0xc0) == 0x40; // @see 9.3.1.2
+            return (_entityKind & 0xc0) == 0x40; // @see 9.3.1.2
         }
 
         public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write(entityKey);
-            bb.write_octet(entityKind);
+            bb.write(_entityKey);
+            bb.write_octet(_entityKind);
+        }
+
+        public override bool Equals(object other) {
+            if (other != null && GetType() == other.GetType()) {
+                var otherEntityId = (EntityId) other;
+                return _entityKind == otherEntityId._entityKind &&
+                       _entityKey.SequenceEqual(otherEntityId._entityKey);
+            }
+
+            return false;
+        }
+        
+        public override int GetHashCode() {
+            byte[] bytes = new byte[4];
+            bytes.CopyTo(_entityKey, 0);
+            bytes[3] = _entityKind;
+
+            return bytes.GetByteArrayHashCode();
         }
     }
 
     public class SequenceNumberSet : Type {
         private SequenceNumber bmbase;
-        private int[] bitmaps;
-        private int numBits;
+        private uint[] bitmaps;
+        private uint numBits;
 
         public long BitmapBase => bmbase.asLong();
 
@@ -126,7 +209,7 @@ namespace rtps.message {
                 int bitCount = 0;
 
                 for (int i = 0; i < bitmaps.Length; i++) {
-                    int bitmap = bitmaps[i];
+                    uint bitmap = bitmaps[i];
 
                     for (int j = 0; j < 32 && bitCount < numBits; j++) {
                         if ((bitmap & 0x80000000) == 0x80000000) { // Compare MSB to 0x80000000 or 0x0
@@ -144,17 +227,26 @@ namespace rtps.message {
         }
 
 
-        public SequenceNumberSet(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+
+        public SequenceNumberSet(long bmBase, uint[] bitMaps) {
+            bmbase = new SequenceNumber(bmBase);
+            bitmaps = bitMaps;
+            numBits = (uint) (bitMaps.Length * 32);
         }
 
-        public SequenceNumberSet(long bmBase, int[] bitMaps) {
-            this.bmbase = new SequenceNumber(bmBase);
-            this.bitmaps = bitMaps;
+        public SequenceNumberSet(RtpsByteBuffer bb) {
+            bmbase = new SequenceNumber(bb);
+
+            numBits = bb.read_long();
+            uint count = (numBits + 31) / 32;
+            bitmaps = new uint[count];
+            bb.read(bitmaps);
         }
 
         public override void WriteTo(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+            bmbase.WriteTo(bb);
+            bb.write_long(numBits);
+            bb.write(bitmaps);
         }
     }
 

@@ -1,9 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using rtps;
 
 namespace udds {
-    public class DataReader<T> {
+    public class DataReader<T> : Entity {
+        private readonly RtpsReader _reader;
         internal List<IDataListener<T>> dataListeners = new List<IDataListener<T>>();
+
+        internal DataReader() : base(null, null, null) {
+            // Used in tests only    
+        }
         
+        protected DataReader(Participant p, string topicName, RtpsReader reader) : base(p, topicName, reader) {
+            _reader = reader;
+        }
+
         public void Add(IDataListener<T> dl) => dataListeners.Add(dl);
         public void Remove(IDataListener<T> dl) => dataListeners.Remove(dl);
     }
