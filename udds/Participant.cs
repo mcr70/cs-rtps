@@ -62,10 +62,44 @@ namespace udds {
             return new DataWriter<T>(this, topicName, rtpsWriter);
         }
 
-        public DataReader<T> CreateDataReader<T>() {
-            List<DataReader<T>> readers = new List<DataReader<T>>();
-            Console.WriteLine("T: " + typeof(T));
-            return null;
+        public DataReader<T> CreateDataReader<T>(string topicName = null) {
+            if (topicName == null) {
+                topicName = typeof(T).Name;
+            }
+
+            EntityId eId;
+            if (TopicData.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.SEDP_BUILTIN_TOPIC_READER;
+            } else if (SubscriptionData.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.SEDP_BUILTIN_SUBSCRIPTIONS_READER;
+            } else if (PublicationData.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.SEDP_BUILTIN_PUBLICATIONS_READER;
+            } else if (ParticipantData.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.SPDP_BUILTIN_PARTICIPANT_READER;
+            } else if (ParticipantMessage.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.BUILTIN_PARTICIPANT_MESSAGE_READER;
+            } else if (ParticipantStatelessMessage.BUILTIN_TOPIC_NAME.Equals(topicName)) {
+                eId = EntityId.BUILTIN_PARTICIPANT_STATELESS_READER;
+            } else {
+                int myIdx = userEntityIdx++;
+                byte[] myKey = new byte[3];
+                myKey[2] = (byte) (myIdx & 0xff);
+                myKey[1] = (byte) (myIdx >> 8 & 0xff);
+                myKey[0] = (byte) (myIdx >> 16 & 0xff);
+
+                byte kind = 0x07; // User defined reader
+//                if (!m.hasKey()) { // (Marshaller.hasKey)
+//                    kind = 0x04; // User defined reader, no key
+//                }
+
+                eId = new EntityId(myKey, kind);            
+            }
+
+            IReaderCache<T> rCache = null; // TODO: implement me
+            var rtpsReader = _rtpsParticipant.CreateReader(eId, rCache); 
+            
+            return new DataReader<T>(this, topicName, rtpsReader);
         }
+        
     }
 }

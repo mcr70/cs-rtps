@@ -127,19 +127,51 @@ namespace rtps {
     public class EntityId : Type {
         public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_WRITER =
             new EntityId(new byte[] { 0, 1, 0 }, 0xc2);
+        public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_READER =
+            new EntityId(new byte[] { 0, 1, 0 }, 0xc7);
 
         public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_WRITER =
             new EntityId(new byte[] { 0, 2, 0 }, 0xc2);
-        public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_WRITER =
-            new EntityId(new byte[] { 0, 2, 1 }, 0xc2); // from security
+        public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_READER =
+            new EntityId(new byte[] { 0, 2, 0 }, 0xc7);
 
         public static readonly EntityId SEDP_BUILTIN_TOPIC_WRITER = 
             new EntityId(new byte[] { 0, 0, 2 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_TOPIC_READER = 
+            new EntityId(new byte[] { 0, 0, 2 }, 0xc7);
         public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_WRITER =
             new EntityId(new byte[] { 0, 0, 3 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_READER =
+            new EntityId(new byte[] { 0, 0, 3 }, 0xc7);
         public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_WRITER = 
             new EntityId(new byte[] { 0, 0, 4 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_READER = 
+            new EntityId(new byte[] { 0, 0, 4 }, 0xc7);
 
+        // From Security
+        public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_WRITER =
+            new EntityId(new byte[] { 0, 2, 1 }, 0xc2); 
+        public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_READER =
+            new EntityId(new byte[] { 0, 2, 1 }, 0xc7);
+        public static readonly EntityId BUILTIN_PARTICIPANT_VOLATILE_MESSAGE_SECURE_WRITER =
+            new EntityId(new byte[] { 0xff, 2, 2 }, 0xc2);
+        public static readonly EntityId BUILTIN_PARTICIPANT_VOLATILE_MESSAGE_SECURE_READER =
+            new EntityId(new byte[] { 0xff, 2, 2 }, 0xc7);
+
+        public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_SECURE_WRITER =
+            new EntityId(new byte[] { 0xff, 0, 3 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_SECURE_READER =
+            new EntityId(new byte[] { 0xff, 0, 3 }, 0xc7);
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_SECURE_WRITER =
+            new EntityId(new byte[] { 0xff, 0, 4 }, 0xc2);
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_SECURE_READER =
+            new EntityId(new byte[] { 0xff, 0, 4 }, 0xc7);
+        public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_SECURE_WRITER =
+            new EntityId(new byte[] { 0xff, 2, 0 }, 0xc2); 
+        public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_SECURE_READER =
+            new EntityId(new byte[] { 0xff, 2, 0 }, 0xc7);
+        
+        
         private readonly byte[] _entityKey;
 
         // 0x02:writer_key, 0x03:writer_no_key,

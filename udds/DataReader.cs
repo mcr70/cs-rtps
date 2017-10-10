@@ -11,7 +11,7 @@ namespace udds {
             // Used in tests only    
         }
         
-        protected DataReader(Participant p, string topicName, RtpsReader reader) : base(p, topicName, reader) {
+        internal DataReader(Participant p, string topicName, RtpsReader reader) : base(p, topicName, reader) {
             _reader = reader;
         }
 
