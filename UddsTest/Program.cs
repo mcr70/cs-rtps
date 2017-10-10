@@ -4,13 +4,16 @@ using udds;
 
 namespace UddsTest {
     internal class Program {
+        private static readonly log4net.ILog log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static void Main(string[] args) {
-            Participant p = new Participant();
-            DataWriter<Hello> dw = p.CreateDataWriter<Hello>();
-            var dw2 = p.CreateDataWriter<Hello>();
+            log.Debug("Starting");
+            var p = new Participant();
+            var dw = p.CreateDataWriter<Hello>();
             
             dw.Write(new Hello());
-            DataReader<Hello> dr = p.CreateDataReader<Hello>();
+            var dr = p.CreateDataReader<Hello>();
             var dr2 = p.CreateDataReader<Hello>();
             
             Console.WriteLine("Closing UddsTest");

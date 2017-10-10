@@ -7,20 +7,20 @@ using Guid = rtps.Guid;
 
 namespace udds {
     public class Participant {
-        private static readonly log4net.ILog log = 
+        private static readonly log4net.ILog Log = 
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private readonly RtpsParticipant _rtpsParticipant;
-        private int userEntityIdx = 0;
+        private int _userEntityIdx = 1;
         
         public Participant() {
-            log.Info("Starting Participant");
-            Guid guid = createGuid();
+            Log.Info("Starting Participant");
+            var guid = createGuid();
             _rtpsParticipant = new RtpsParticipant(guid);    
         }
 
         private Guid createGuid() {
-            return new Guid(null, null);
+            return new Guid(GuidPrefix.GUIDPREFIX_UNKNOWN, null); // TODO: Implement me
         }
 
         public DataWriter<T> CreateDataWriter<T>(string topicName = null) {
@@ -42,7 +42,7 @@ namespace udds {
             } else if (ParticipantStatelessMessage.BUILTIN_TOPIC_NAME.Equals(topicName)) {
                 eId = EntityId.BUILTIN_PARTICIPANT_STATELESS_WRITER;
             } else {
-                int myIdx = userEntityIdx++;
+                int myIdx = _userEntityIdx++;
                 byte[] myKey = new byte[3];
                 myKey[2] = (byte) (myIdx & 0xff);
                 myKey[1] = (byte) (myIdx >> 8 & 0xff);
@@ -58,6 +58,8 @@ namespace udds {
 
             IWriterCache<T> wCache = null; // TODO: implement me
             var rtpsWriter = _rtpsParticipant.CreateWriter(eId, wCache); 
+
+            Log.DebugFormat("Created DataWriter for topic '{0}': {1}", topicName, eId);
             
             return new DataWriter<T>(this, topicName, rtpsWriter);
         }
@@ -81,7 +83,7 @@ namespace udds {
             } else if (ParticipantStatelessMessage.BUILTIN_TOPIC_NAME.Equals(topicName)) {
                 eId = EntityId.BUILTIN_PARTICIPANT_STATELESS_READER;
             } else {
-                int myIdx = userEntityIdx++;
+                int myIdx = _userEntityIdx++;
                 byte[] myKey = new byte[3];
                 myKey[2] = (byte) (myIdx & 0xff);
                 myKey[1] = (byte) (myIdx >> 8 & 0xff);
@@ -98,6 +100,8 @@ namespace udds {
             IReaderCache<T> rCache = null; // TODO: implement me
             var rtpsReader = _rtpsParticipant.CreateReader(eId, rCache); 
             
+            Log.DebugFormat("Created DataReader for topic '{0}': {1}", topicName, eId);
+
             return new DataReader<T>(this, topicName, rtpsReader);
         }
         

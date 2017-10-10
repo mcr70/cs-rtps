@@ -48,16 +48,28 @@ namespace rtps {
             
             return false;
         }
+
+        public override String ToString() {
+            return Prefix + ", " + EntityId;
+        }
     }
     
     public class GuidPrefix : Type {
         public static readonly GuidPrefix GUIDPREFIX_UNKNOWN = new GuidPrefix();
         private readonly byte[] bytes;
-        
-        private GuidPrefix() {
-            bytes = new byte[12];
-        }
 
+        private GuidPrefix() : this(new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
+        }
+   
+
+        public GuidPrefix(byte[] bytes) {
+            if (bytes.Length != 12) {
+                throw new ArgumentException("Length of byte array for GuidPrefix must be 12");
+            }
+            
+            this.bytes = bytes;
+        }
+        
         public GuidPrefix(RtpsByteBuffer bb) {
             bytes = new byte[12];
             bb.read(bytes);
@@ -77,6 +89,10 @@ namespace rtps {
         
         public override int GetHashCode() {
             return bytes.GetByteArrayHashCode();
+        }
+
+        public override string ToString() {
+            return bytes.ToString(",");
         }
     }
 
@@ -223,6 +239,10 @@ namespace rtps {
             bytes[3] = _entityKind;
 
             return bytes.GetByteArrayHashCode();
+        }
+
+        public override string ToString() {
+            return _entityKey.ToString(",") + ":0x" + _entityKind.ToString("X2"); 
         }
     }
 
