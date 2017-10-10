@@ -1,18 +1,18 @@
 ﻿using rtps;
+using rtps.message.builtin;
 
 namespace udds {
-    public class Entity {
+    public class Entity
+    {
         private readonly Participant _participant;
-        private readonly RtpsEndpoint _rtpsEndpoint;
         public readonly string TopicName;
         
-        protected Entity(Participant p, string topicName, RtpsEndpoint rtpsEndpoint) {
+        protected Entity(Participant p, string topicName, Guid writerGuid) {
             _participant = p;
             TopicName = topicName;
-            _rtpsEndpoint = rtpsEndpoint;
         }
 
         public Participant GetParticipant() => _participant;
-        public Guid GetGuid() => _rtpsEndpoint.Guid;
+
     }
 }

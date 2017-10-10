@@ -5,7 +5,7 @@ namespace udds {
     public class DataWriter<T> : Entity {
         private readonly RtpsWriter _writer;
         
-        internal DataWriter(Participant p, string topicName, RtpsWriter writer) : base(p, topicName, writer) {
+        internal DataWriter(Participant p, string topicName, RtpsWriter writer) : base(p, topicName, writer.Guid) {
             _writer = writer;
         }
 

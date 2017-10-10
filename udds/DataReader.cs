@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using rtps;
 
 namespace udds {
@@ -11,7 +10,7 @@ namespace udds {
             // Used in tests only    
         }
         
-        internal DataReader(Participant p, string topicName, RtpsReader reader) : base(p, topicName, reader) {
+        internal DataReader(Participant p, string topicName, RtpsReader reader) : base(p, topicName, reader.Guid) {
             _reader = reader;
         }
 
