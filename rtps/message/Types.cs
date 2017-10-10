@@ -151,6 +151,9 @@ namespace rtps {
         public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_READER =
             new EntityId(new byte[] { 0, 2, 0 }, 0xc7);
 
+        public static readonly EntityId PARTICIPANT = 
+            new EntityId(new byte[] { 0, 0, 1 }, (byte) 0xc1);
+        
         public static readonly EntityId SEDP_BUILTIN_TOPIC_WRITER = 
             new EntityId(new byte[] { 0, 0, 2 }, 0xc2);
         public static readonly EntityId SEDP_BUILTIN_TOPIC_READER = 
@@ -224,8 +227,9 @@ namespace rtps {
         }
 
         public override bool Equals(object other) {
-            if (other != null && GetType() == other.GetType()) {
+            if (other != null && typeof(EntityId) == other.GetType()) {
                 var otherEntityId = (EntityId) other;
+                
                 return _entityKind == otherEntityId._entityKind &&
                        _entityKey.SequenceEqual(otherEntityId._entityKey);
             }
@@ -235,7 +239,7 @@ namespace rtps {
         
         public override int GetHashCode() {
             byte[] bytes = new byte[4];
-            bytes.CopyTo(_entityKey, 0);
+            _entityKey.CopyTo(bytes, 0);
             bytes[3] = _entityKind;
 
             return bytes.GetByteArrayHashCode();

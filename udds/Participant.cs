@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 
 using rtps;
 using rtps.message.builtin;
@@ -10,18 +10,23 @@ namespace udds {
         private static readonly log4net.ILog Log = 
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        private readonly Hashtable _dataWriters = new Hashtable();
+        private readonly Hashtable _dataReaders = new Hashtable();
+        
         private readonly RtpsParticipant _rtpsParticipant;
         private int _userEntityIdx = 1;
         
         public Participant() {
-            Log.Info("Starting Participant");
             var guid = createGuid();
-            _rtpsParticipant = new RtpsParticipant(guid);    
+            Log.Info("Starting Participant " + guid.Prefix);
+
+            _rtpsParticipant = new RtpsParticipant(guid);
+
+            createBuiltinEntities();
+
+            _rtpsParticipant.Start();
         }
 
-        private Guid createGuid() {
-            return new Guid(GuidPrefix.GUIDPREFIX_UNKNOWN, null); // TODO: Implement me
-        }
 
         public DataWriter<T> CreateDataWriter<T>(string topicName = null) {
             if (topicName == null) {
@@ -55,14 +60,23 @@ namespace udds {
 
                 eId = new EntityId(myKey, kind);            
             }
-
+            
+            if (_dataWriters.ContainsKey(eId)) {
+                Log.WarnFormat("Returning existing writer for '{0}'", topicName);
+                return _dataWriters[eId] as DataWriter<T>;
+            }
+            
             IWriterCache<T> wCache = null; // TODO: implement me
             var rtpsWriter = _rtpsParticipant.CreateWriter(eId, wCache); 
-
-            Log.DebugFormat("Created DataWriter for topic '{0}': {1}", topicName, eId);
+            var writer = new DataWriter<T>(this, topicName, rtpsWriter);
+            _dataWriters[eId] = writer;
             
-            return new DataWriter<T>(this, topicName, rtpsWriter);
+            Log.DebugFormat("Created DataWriter for '{0}': {1}", topicName, eId);
+            writePublicationData(writer); // Publish our new writer
+
+            return writer;
         }
+
 
         public DataReader<T> CreateDataReader<T>(string topicName = null) {
             if (topicName == null) {
@@ -97,13 +111,48 @@ namespace udds {
                 eId = new EntityId(myKey, kind);            
             }
 
+            if (_dataReaders.ContainsKey(eId)) {
+                Log.WarnFormat("Returning existing reader for '{0}'", topicName);
+                return _dataWriters[eId] as DataReader<T>;
+            }
+
             IReaderCache<T> rCache = null; // TODO: implement me
             var rtpsReader = _rtpsParticipant.CreateReader(eId, rCache); 
+            var reader = new DataReader<T>(this, topicName, rtpsReader);
+            _dataReaders[eId] = reader;
             
-            Log.DebugFormat("Created DataReader for topic '{0}': {1}", topicName, eId);
-
-            return new DataReader<T>(this, topicName, rtpsReader);
+            Log.DebugFormat("Created DataReader for '{0}': {1}", topicName, eId);
+            writeSubscriptionData(reader);
+            
+            return reader;
         }
-        
+
+
+        private void createBuiltinEntities() {
+            // Create SPDP Entities
+            CreateDataReader<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
+            CreateDataWriter<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
+            // TODO: Add matched reader to SPDP Writer: GuidPrefix.UNKNOWN
+            
+            // Create SEDP Entities
+            CreateDataReader<TopicData>(TopicData.BUILTIN_TOPIC_NAME);
+            CreateDataWriter<TopicData>(TopicData.BUILTIN_TOPIC_NAME);
+            CreateDataReader<PublicationData>(PublicationData.BUILTIN_TOPIC_NAME);
+            CreateDataWriter<PublicationData>(PublicationData.BUILTIN_TOPIC_NAME);
+            CreateDataReader<SubscriptionData>(SubscriptionData.BUILTIN_TOPIC_NAME);
+            CreateDataWriter<SubscriptionData>(SubscriptionData.BUILTIN_TOPIC_NAME);
+        }
+
+        private Guid createGuid() {
+            return new Guid(GuidPrefix.GUIDPREFIX_UNKNOWN, EntityId.PARTICIPANT); // TODO: Implement me
+        }
+
+        private void writePublicationData<T>(DataWriter<T> writer) {
+            PublicationData pd = new PublicationData(); // TODO: implement me
+        }
+
+        private void writeSubscriptionData<T>(DataReader<T> reader) {
+            SubscriptionData sd = new SubscriptionData();
+        }
     }
 }

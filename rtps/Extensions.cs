@@ -9,7 +9,7 @@ namespace rtps {
             sb.Append("[");
             for (int i = 0; i < bytes.Length; i++) {
                 sb.Append("0x");
-                sb.Append(bytes[i].ToString("X2"));
+                sb.Append(bytes[i].ToString("x2"));
                 if (i < bytes.Length - 1) {
                     sb.Append(delim);
                 }

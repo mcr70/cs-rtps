@@ -16,5 +16,9 @@
         public RtpsWriter CreateWriter<T>(EntityId eid, IWriterCache<T> rCache) {
             return new RtpsWriter(new Guid(_guid.Prefix, eid));
         }
+
+        public void Start() {
+            Log.Debug("Starting Participant " + _guid.Prefix);
+        }
     }
 }
