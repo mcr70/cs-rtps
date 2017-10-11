@@ -9,7 +9,7 @@
             _guid = guid;
         }
 
-        public RtpsReader CreateReader<T>(EntityId eid, IReaderCache<T> rCache) {
+        public RtpsReader CreateReader<T>(EntityId eid, IReaderCache rCache) {
             return new RtpsReader(new Guid(_guid.Prefix, eid));
         }
 

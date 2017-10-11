@@ -10,11 +10,15 @@ namespace udds {
         }
 
         public virtual void Write(T sample) => Write(new List<T> {sample});
-        public virtual void Write(IList<T> samples) {            
+        public virtual void Write(IList<T> samples) {
+            foreach (var s in samples) {
+            }
         }
 
         public virtual void Delete(T sample) => Delete(new List<T> {sample});        
         public virtual void Delete(IList<T> samples) {            
+            foreach (var s in samples) {                
+            }
         }
     }
 }

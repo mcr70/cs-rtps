@@ -7,13 +7,15 @@ namespace rtps {
     public abstract class RtpsEndpoint<TProxyType, TProxyData> 
                where TProxyType: RemoteProxy
                where TProxyData: DiscoveredData {
-        
+        public bool Reliable { get; }
+
         protected readonly Dictionary<Guid, TProxyType> RemoteProxies = 
             new Dictionary<Guid, TProxyType>();
 
         public readonly Guid Guid;
 
-        protected RtpsEndpoint(Guid guid) {
+        protected RtpsEndpoint(Guid guid, bool reliable) {
+            Reliable = reliable;
             Guid = guid;
         }
         

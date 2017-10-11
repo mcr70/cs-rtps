@@ -4,6 +4,7 @@ using System.Collections;
 using rtps;
 using rtps.message.builtin;
 using Guid = rtps.Guid;
+using Type = System.Type;
 
 namespace udds {
     public class Participant {
@@ -53,11 +54,8 @@ namespace udds {
                 myKey[1] = (byte) (myIdx >> 8 & 0xff);
                 myKey[0] = (byte) (myIdx >> 16 & 0xff);
 
-                byte kind = 0x02; // User defined writer, with key, see 9.3.1.2 Mapping of the EntityId_t
-//                if (!m.hasKey()) { // Marshaller.hasKey
-//                    kind = 0x03; // User defined writer, no key
-//                }
-
+                // User defined writer, with key or with no key
+                byte kind = hasKey(typeof(T)) ? (byte)0x02: (byte)0x03;
                 eId = new EntityId(myKey, kind);            
             }
             
@@ -72,8 +70,11 @@ namespace udds {
             _dataWriters[eId] = writer;
             
             Log.DebugFormat("Created DataWriter for '{0}': {1}", topicName, eId);
-            writePublicationData(writer); // Publish our new writer
 
+            if (!eId.IsBuiltinEntity()) {
+                writePublicationData(writer); // Publish our new writer
+            }
+            
             return writer;
         }
 
@@ -103,11 +104,8 @@ namespace udds {
                 myKey[1] = (byte) (myIdx >> 8 & 0xff);
                 myKey[0] = (byte) (myIdx >> 16 & 0xff);
 
-                byte kind = 0x07; // User defined reader
-//                if (!m.hasKey()) { // (Marshaller.hasKey)
-//                    kind = 0x04; // User defined reader, no key
-//                }
-
+                // User defined reader, with key or with no key
+                byte kind = hasKey(typeof(T)) ? (byte)0x07: (byte)0x04;
                 eId = new EntityId(myKey, kind);            
             }
 
@@ -122,7 +120,9 @@ namespace udds {
             _dataReaders[eId] = reader;
             
             Log.DebugFormat("Created DataReader for '{0}': {1}", topicName, eId);
-            writeSubscriptionData(reader);
+            if (!eId.IsBuiltinEntity()) {
+                writeSubscriptionData(reader);
+            }
             
             return reader;
         }
@@ -148,11 +148,21 @@ namespace udds {
         }
 
         private void writePublicationData<T>(DataWriter<T> writer) {
-            PublicationData pd = new PublicationData(); // TODO: implement me
+            var pd = new PublicationData(); // TODO: implement me
+            var dw = (DataWriter<PublicationData>) _dataWriters[EntityId.SEDP_BUILTIN_PUBLICATIONS_WRITER];
+            
+            dw.Write(pd);
         }
 
         private void writeSubscriptionData<T>(DataReader<T> reader) {
-            SubscriptionData sd = new SubscriptionData();
+            var sd = new SubscriptionData(); // TODO: implement me
+            var dw = (DataWriter<SubscriptionData>) _dataWriters[EntityId.SEDP_BUILTIN_SUBSCRIPTIONS_WRITER];
+            
+            dw.Write(sd);
         }
+
+        private bool hasKey(Type t) {
+            return false; // TODO: implement me
+        } 
     }
 }
