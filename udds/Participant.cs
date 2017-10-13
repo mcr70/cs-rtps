@@ -64,7 +64,7 @@ namespace udds {
                 return _dataWriters[eId] as DataWriter<T>;
             }
             
-            IWriterCache<T> wCache = null; // TODO: implement me
+            HistoryCache wCache = null; // TODO: implement me
             var rtpsWriter = _rtpsParticipant.CreateWriter(eId, wCache); 
             var writer = new DataWriter<T>(this, topicName, rtpsWriter);
             _dataWriters[eId] = writer;
@@ -114,7 +114,7 @@ namespace udds {
                 return _dataWriters[eId] as DataReader<T>;
             }
 
-            IReaderCache<T> rCache = null; // TODO: implement me
+            HistoryCache rCache = null; // TODO: implement me
             var rtpsReader = _rtpsParticipant.CreateReader(eId, rCache); 
             var reader = new DataReader<T>(this, topicName, rtpsReader);
             _dataReaders[eId] = reader;
@@ -148,14 +148,14 @@ namespace udds {
         }
 
         private void writePublicationData<T>(DataWriter<T> writer) {
-            var pd = new PublicationData(); // TODO: implement me
+            var pd = new PublicationData(writer.TopicName, typeof(T), writer.Guid); // TODO: implement me
             var dw = (DataWriter<PublicationData>) _dataWriters[EntityId.SEDP_BUILTIN_PUBLICATIONS_WRITER];
             
             dw.Write(pd);
         }
 
         private void writeSubscriptionData<T>(DataReader<T> reader) {
-            var sd = new SubscriptionData(); // TODO: implement me
+            var sd = new SubscriptionData(reader.TopicName, typeof(T), reader.Guid); // TODO: implement me
             var dw = (DataWriter<SubscriptionData>) _dataWriters[EntityId.SEDP_BUILTIN_SUBSCRIPTIONS_WRITER];
             
             dw.Write(sd);
