@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
+
 using rtps.message;
 
 namespace rtps {
@@ -13,21 +15,27 @@ namespace rtps {
         public RTPSMessageReceiver(BlockingCollection<byte[]> queue) {
             _queue = queue;
         }
-
+ 
+        // This method is run by the main Thread of Receiver.
+        // We could have multiple main receivers, or we could have receivers
+        // per recipient. Or maybe some other scenario.
         public void Run() {
             while (_running) {
-                try {
-                    byte[] bytes = _queue.Take();
-                    Message m = new Message(new RtpsByteBuffer(bytes));
-                    handleMessage(m);
-                }
-                catch (Exception e) {
-                    Log.Warn("Exception occured during message handling", e);                    
-                }
+                byte[] bytes = _queue.Take(); // TODO: CancellationToken
+                // Dispatch another Thread for handling Message
+                Task.Run(() => handleBytes(bytes));                    
             }
         }
 
+        // This method is run asynchronously to process bytes into Message,
+        // and deliver submessages to recipients.
+        private void handleBytes(byte[] bytes) {
+            Message m = new Message(new RtpsByteBuffer(bytes));
+            handleMessage(m);
+        }
+        
         private void handleMessage(Message message) {
+            // TODO: implement me
         }
     }
 }
