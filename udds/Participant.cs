@@ -144,7 +144,7 @@ namespace udds {
         }
 
         private Guid createGuid() {
-            return new Guid(GuidPrefix.GUIDPREFIX_UNKNOWN, EntityId.PARTICIPANT); // TODO: Implement me
+            return new Guid(GuidPrefix.UNKNOWN, EntityId.PARTICIPANT); // TODO: Implement me
         }
 
         private void writePublicationData<T>(DataWriter<T> writer) {

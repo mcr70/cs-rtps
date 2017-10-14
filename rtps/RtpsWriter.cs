@@ -1,4 +1,5 @@
-﻿using rtps.message.builtin;
+﻿using rtps.message;
+using rtps.message.builtin;
 
 namespace rtps {
     public class RtpsWriter : RtpsEndpoint<ReaderProxy, SubscriptionData> {
@@ -7,6 +8,10 @@ namespace rtps {
 
         protected override ReaderProxy CreateProxy(SubscriptionData dd) {
             return new ReaderProxy(dd);
+        }
+
+        public void OnAckNack(AckNack ackNack) {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -28,6 +28,8 @@ namespace rtps {
     }
 
     public class Guid {
+        public static readonly Guid UNKNOWN = new Guid(GuidPrefix.UNKNOWN, EntityId.UNKNOWN);
+        
         public EntityId EntityId { get; }
         public GuidPrefix Prefix { get; }
         
@@ -55,7 +57,7 @@ namespace rtps {
     }
     
     public class GuidPrefix : Type {
-        public static readonly GuidPrefix GUIDPREFIX_UNKNOWN = new GuidPrefix();
+        public static readonly GuidPrefix UNKNOWN = new GuidPrefix();
         private readonly byte[] bytes;
 
         private GuidPrefix() : this(new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
@@ -141,6 +143,8 @@ namespace rtps {
     }
 
     public class EntityId : Type {
+        public static readonly EntityId UNKNOWN = new EntityId(new byte[] {0, 0, 0}, 0);
+        
         public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_WRITER =
             new EntityId(new byte[] { 0, 1, 0 }, 0xc2);
         public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_READER =
@@ -282,6 +286,15 @@ namespace rtps {
             }
         }
 
+        public SequenceNumberSet(long _base, uint numBits) {
+            this.bmbase = new SequenceNumber(_base);
+            this.numBits = numBits;
+            this.bitmaps = new uint[(numBits + 31) / 32];
+        
+            for (int i = 0; i < bitmaps.Length; i++) {
+                bitmaps[i] = 0xff;
+            }
+        }
 
 
         public SequenceNumberSet(long bmBase, uint[] bitMaps) {
@@ -331,6 +344,9 @@ namespace rtps {
         public static readonly Time TIME_INVALID = new Time(0xffffffff, 0xffffffff);
         public static readonly Time TIME_INFINITE = new Time(0x7fffffff, 0xffffffff);
 
+        private static readonly DateTime Jan1st1970 = 
+            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         private uint seconds;
         private uint fraction;
         
@@ -343,7 +359,10 @@ namespace rtps {
             seconds = sec;
             fraction = frac;
         }
-        
+
+        public Time() : this((long) (DateTime.UtcNow - Jan1st1970).TotalMilliseconds) {
+        }
+
         public Time(long systemCurrentMillis) {
             seconds = (uint) (systemCurrentMillis / 1000);
         

@@ -17,7 +17,7 @@ namespace rtps.message {
         /// <summary>
         /// Sets GuidPrefix_t to UNKNOWN.
         /// </summary>
-        public InfoDestination() : this(GuidPrefix.GUIDPREFIX_UNKNOWN) {
+        public InfoDestination() : this(GuidPrefix.UNKNOWN) {
         }
 
         /// <summary>

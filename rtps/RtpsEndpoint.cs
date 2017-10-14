@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime;
+using rtps.message;
 using rtps.message.builtin;
 
 namespace rtps {
@@ -39,5 +40,9 @@ namespace rtps {
         }
 
         protected abstract TProxyType CreateProxy(TProxyData dd);
+
+        protected void SendMessage(Message msg, TProxyType proxy) {
+            
+        }
     }
 }
