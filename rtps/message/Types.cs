@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using rtps.message;
+using rtps.message.builtin;
 
 namespace rtps {
     internal static class ExtensionMethods {
@@ -123,11 +125,11 @@ namespace rtps {
 
         private byte[] bytes;
 
-        private VendorId(byte[] bytes) : base(ParameterId.PID_VENDOR_ID) {
+        private VendorId(byte[] bytes) : base(ParameterId.PID_VENDORID) {
             this.bytes = bytes;
         }
 
-        public VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDOR_ID) {
+        public VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDORID) {
             ReadFrom(bb);
         }
 
@@ -379,22 +381,25 @@ namespace rtps {
     }
 
     public class Locator : Type {
-        private uint kind;
-        private uint port;
-        private byte[] address;
+        public static readonly uint LOCATOR_KIND_UDPv4 = 1;
+        public static readonly uint LOCATOR_KIND_UDPv6 = 2;
+
+        public uint Kind { get; internal set; }
+        public byte[] Address { get; internal set; }
+        public uint Port { get; internal set; }
 
         public Locator(RtpsByteBuffer bb) {
-            kind = bb.read_long();
-            port = bb.read_long();
-            address = new byte[16];
+            Kind = bb.read_long();
+            Port = bb.read_long();
+            Address = new byte[16];
 
-            bb.read(address);
+            bb.read(Address);
         }
 
         public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write_long(kind);
-            bb.write_long(port);
-            bb.write(address);
+            bb.write_long(Kind);
+            bb.write_long(Port);
+            bb.write(Address);
         }
     }
 
@@ -413,8 +418,12 @@ namespace rtps {
         }
     }
 
-    public class ParameterList : Type {
+    public class ParameterList : Type, IEnumerable<Parameter> {
         private List<Parameter> _parameters = new List<Parameter>();
+        internal int Count => _parameters.Count;
+
+        public ParameterList() {
+        }
 
         public ParameterList(RtpsByteBuffer bb) {
             while (true) {
@@ -462,7 +471,14 @@ namespace rtps {
             return null;
         }
 
-        internal int Count => _parameters.Count;
+        
+        public IEnumerator<Parameter> GetEnumerator() {
+            return _parameters.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() {
+            return GetEnumerator();
+        }
     }
 
     public class DataEncapsulation {
@@ -546,27 +562,4 @@ namespace rtps {
         }
     }
 
-    public enum ParameterId {
-        PID_SENTINEL = 0x0001,
-        PID_VENDOR_ID = 0x0016,
-        PID_CONTENT_FILTER_INFO = 0x0055,
-        PID_STATUS_INFO = 0x0071,
-    }
-
-    public abstract class Parameter {
-        public ParameterId Id { get; }
-
-        protected Parameter(ParameterId id) {
-            Id = id;
-        }
-
-        public abstract void ReadFrom(RtpsByteBuffer bb);
-        public abstract void WriteTo(RtpsByteBuffer buffer);
-    }
-
-    public class ParameterFactory {
-        internal static Parameter readParameter(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
-        }
-    }
 }

@@ -108,6 +108,10 @@ namespace rtps.message {
             return adv;
         }
 
+        internal byte[] ToArray() {
+            return _stream.GetBuffer();
+        }
+        
         internal UInt16 SwapBytes(UInt16 x) {
             return (UInt16) ((x >> 8) | (x << 8));
         }
@@ -127,5 +131,6 @@ namespace rtps.message {
             // swap adjacent 8-bit blocks
             return ((x & 0xFF00FF00FF00FF00) >> 8) | ((x & 0x00FF00FF00FF00FF) << 8);
         }
+       
     }
 }

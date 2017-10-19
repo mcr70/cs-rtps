@@ -39,6 +39,7 @@
   <ItemGroup>
     <Compile Include="*.cs" />
     <Compile Include="message\builtin\DiscoveredData.cs" />
+    <Compile Include="message\builtin\Parameters.cs" />
     <Compile Include="message\builtin\ParticipantData.cs" />
     <Compile Include="message\builtin\ParticipantMessage.cs" />
     <Compile Include="message\builtin\ParticipantStatelessMessage.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="message\SecureSubMessage.cs" />
     <Compile Include="message\Types.cs" />
     <Compile Include="message\UnknownSubMessage.cs" />
+    <Compile Include="transport\Transport.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="tests\" />

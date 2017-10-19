@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using rtps.message.builtin;
 
 namespace rtps.message {
     /// <summary>

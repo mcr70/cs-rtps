@@ -1,13 +1,60 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using rtps.message;
 using rtps.message.builtin;
 
 namespace rtps {
     public class RemoteProxy {
-        public DiscoveredData DiscoveredData { get; internal set; }
+        private static readonly log4net.ILog Log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public Guid Guid { get; internal set; }
+        public DiscoveredData DiscoveredData { get; internal set; }
+        private Dictionary<GuidPrefix, ParticipantData> discoveredParticipants = new Dictionary<GuidPrefix, ParticipantData>();
+        
         protected RemoteProxy(DiscoveredData dd) {
             DiscoveredData = dd;
+            Guid = dd.BuiltinTopicKey;
+        }
+
+        
+        public List<Locator> GetLocators() {
+            List<Locator> locators = new List<Locator>();
+
+            // check if proxys discovery data contains locator info
+            if (!(DiscoveredData.GetType() == typeof(ParticipantData))) {
+                foreach (var p in DiscoveredData.Parameters) {
+                    if (p.GetType() == typeof(LocatorParam)) { // LocatorParam??
+                        locators.Add(((LocatorParam)p).GetLocator());
+                    }
+                }
+            }
+
+            // Add default locators from Participant Data
+            Guid remoteGuid = DiscoveredData.BuiltinTopicKey;
+
+            // Set the default locators from ParticipantData
+            ParticipantData pd = discoveredParticipants[remoteGuid.Prefix];
+            if (pd != null) {
+                if (remoteGuid.EntityId.IsBuiltinEntity()) {
+                    locators.InsertRange(0, pd.GetDiscoveryLocators());
+                } 
+                else {
+                    locators.AddRange(pd.GetUserdataLocators());
+                }
+            }
+            else {
+                Log.WarnFormat("ParticipantData was not found for {0}, cannot set default locators", remoteGuid);
+            }
+
+            return locators;
+        }
+
+        
+        
+        public Locator GetLocator() {
+            return null;
         }
     }
     

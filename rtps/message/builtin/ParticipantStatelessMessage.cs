@@ -4,5 +4,8 @@
     */
     public class ParticipantStatelessMessage : DiscoveredData {
         public static readonly string BUILTIN_TOPIC_NAME = "DCPSParticipantStatelessMessage";
+
+        protected ParticipantStatelessMessage(ParameterList pList) : base(pList) {
+        }
     }
 }

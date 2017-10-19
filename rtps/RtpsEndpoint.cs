@@ -1,13 +1,21 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime;
+using log4net.Config;
 using rtps.message;
 using rtps.message.builtin;
+using rtps.transport;
 
 namespace rtps {
     public abstract class RtpsEndpoint<TProxyType, TProxyData> 
                where TProxyType: RemoteProxy
                where TProxyData: DiscoveredData {
+
+        private static readonly log4net.ILog Log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        
+        
         public bool Reliable { get; }
 
         protected readonly Dictionary<Guid, TProxyType> RemoteProxies = 
@@ -42,7 +50,16 @@ namespace rtps {
         protected abstract TProxyType CreateProxy(TProxyData dd);
 
         protected void SendMessage(Message msg, TProxyType proxy) {
-            
+            Locator loc = proxy.GetLocator();
+            if (loc != null) {
+                TransportProvider provider = TransportProvider.getProvider(loc.Kind);
+                ITransmitter tr = provider.GetTransmitter(loc);
+                tr.SendMessage(msg);
+            }
+            else {
+                Log.WarnFormat("Unable to send message, no suitable Locator for proxy '{0}'", proxy.Guid);               
+            }
         }
     }
+
 }
