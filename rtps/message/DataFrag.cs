@@ -93,7 +93,7 @@ namespace rtps.message {
         private void readParameterList(RtpsByteBuffer bb) {
             while (true) {
                 bb.align(4);
-                Parameter param = ParameterFactory.readParameter(bb);
+                Parameter param = ParameterFactory.ReadParameter(bb);
                 parameterList.Add(param);
                 if (param.Id == ParameterId.PID_SENTINEL) {
                     break;

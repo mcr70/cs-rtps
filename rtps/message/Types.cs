@@ -29,11 +29,16 @@ namespace rtps {
         public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
-    public class Guid {
+    public class Guid : Type {
         public static readonly Guid UNKNOWN = new Guid(GuidPrefix.UNKNOWN, EntityId.UNKNOWN);
         
-        public EntityId EntityId { get; }
         public GuidPrefix Prefix { get; }
+        public EntityId EntityId { get; }
+
+        internal Guid(RtpsByteBuffer bb) {
+            Prefix = new GuidPrefix(bb);
+            EntityId = new EntityId(bb);
+        }
         
         public Guid(GuidPrefix prefix, EntityId eid) {
             Prefix = prefix;
@@ -55,6 +60,11 @@ namespace rtps {
 
         public override String ToString() {
             return Prefix + ", " + EntityId;
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb) {
+            Prefix.WriteTo(bb);
+            EntityId.WriteTo(bb);
         }
     }
     
@@ -120,29 +130,6 @@ namespace rtps {
     }
 
 
-    public sealed class VendorId : Parameter {
-        public static readonly VendorId JRTPS = new VendorId(new byte[] {(byte) 0x01, (byte) 0x21});
-
-        private byte[] bytes;
-
-        private VendorId(byte[] bytes) : base(ParameterId.PID_VENDORID) {
-            this.bytes = bytes;
-        }
-
-        public VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDORID) {
-            ReadFrom(bb);
-        }
-
-
-        public override void ReadFrom(RtpsByteBuffer bb) {
-            bytes = new byte[2];
-            bb.read(bytes);
-        }
-
-        public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write(bytes);
-        }
-    }
 
     public class EntityId : Type {
         public static readonly EntityId UNKNOWN = new EntityId(new byte[] {0, 0, 0}, 0);
@@ -429,7 +416,7 @@ namespace rtps {
             while (true) {
                 long pos1 = bb.Position;
 
-                Parameter param = ParameterFactory.readParameter(bb);
+                Parameter param = ParameterFactory.ReadParameter(bb);
                 _parameters.Add(param);
                 long length = bb.Position - pos1;
 
@@ -493,62 +480,6 @@ namespace rtps {
         }
     }
 
-    public class Sentinel : Parameter {
-        public Sentinel() : base(ParameterId.PID_SENTINEL) {
-        }
-
-        public override void ReadFrom(RtpsByteBuffer bb) {
-            // No Content
-        }
-
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            // No Content
-        }
-    }
-    
-    public class StatusInfo : Parameter {
-        public StatusInfo() : base(ParameterId.PID_STATUS_INFO) {
-        }
-
-        public override void ReadFrom(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
-        }
-
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class ContentFilterInfo : Parameter {
-        private uint[] bitmaps;
-        private Signature[] signatures;
-
-        public ContentFilterInfo() : base(ParameterId.PID_CONTENT_FILTER_INFO) {
-        }
-
-        public override void ReadFrom(RtpsByteBuffer bb) {
-            this.bitmaps = new uint[bb.read_long()];
-            for (int i = 0; i < bitmaps.Length; i++) {
-                bitmaps[i] = bb.read_long();
-            }
-
-            this.signatures = new Signature[bb.read_long()];
-            for (int i = 0; i < signatures.Length; i++) {
-                signatures[i] = new Signature(bb);
-            }
-        }
-
-        public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write_long((uint) bitmaps.Length);
-            for (int i = 0; i < bitmaps.Length; i++) {
-                bb.write_long(bitmaps[i]);
-            }
-
-            bb.write_long((uint) signatures.Length);
-            for (int i = 0; i < signatures.Length; i++) {
-                bb.write(signatures[i].Bytes);
-            }
-        }
 
         public class Signature {
             private byte[] bytes;
@@ -561,5 +492,3 @@ namespace rtps {
             }
         }
     }
-
-}

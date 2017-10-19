@@ -9,6 +9,15 @@ namespace rtps.message.builtin {
 
         protected DiscoveredData(ParameterList pList) {
             Parameters = pList;
+
+            foreach (var p in Parameters) {
+                switch (p.Id) {
+                   case ParameterId.PID_BUILTIN_TOPIC_KEY:
+                            
+                        break;
+                            
+                }
+            }
         }
         
         protected DiscoveredData(string topicName, string typeName, Guid guid) {
