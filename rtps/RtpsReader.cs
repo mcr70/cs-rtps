@@ -15,16 +15,16 @@ namespace rtps {
         
         public void OnGap(GuidPrefix senderPrefix, Gap gap) {
             Guid remoteGuid = new Guid(senderPrefix, gap.WriterId);
-            WriterProxy wp = RemoteProxies[remoteGuid];
-            if (wp != null) {
+            WriterProxy wp;
+            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
                 wp.ApplyGap(gap);
             }
         }
 
         public void OnHeartbeat(GuidPrefix senderPrefix, Heartbeat hb) {
             Guid remoteGuid = new Guid(senderPrefix, hb.WriterId);
-            WriterProxy wp = RemoteProxies[remoteGuid];
-            if (wp != null) {
+            WriterProxy wp;
+            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
                 if (wp.ApplyHeartbeat(hb) && Reliable) {
                     // Reply with Acknack, if FinalFlag is not set, or
                     // we have not received every data
@@ -47,8 +47,8 @@ namespace rtps {
 
         public void OnData(GuidPrefix senderPrefix, Data data, Time timestamp) {
             Guid remoteGuid = new Guid(senderPrefix, data.WriterId);
-            WriterProxy wp = RemoteProxies[remoteGuid];
-            if (wp != null) {
+            WriterProxy wp;
+            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
                 // TODO: Implement me
             }
             else {

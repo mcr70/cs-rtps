@@ -1,6 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using rtps.transport;
 
 namespace rtps {
     public class RtpsParticipant {
@@ -42,9 +44,26 @@ namespace rtps {
         
         public void Start() {
             Log.Debug("Starting Participant " + Guid.Prefix);
-            BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
-            RtpsMessageReceiver receiver = new RtpsMessageReceiver(this, queue);
-            Task.Run(() => receiver.Run());
+            foreach (var uri in Configuration.GetDiscoveryListenerUris()) {
+                BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
+            
+                RtpsMessageReceiver receiver = new RtpsMessageReceiver(this, queue);
+                Task.Run(() => receiver.Run());
+
+                startReceiver(queue, uri);   
+            }            
+        }
+
+        private void startReceiver(BlockingCollection<byte[]> queue, Uri u) {
+            TransportProvider tp = TransportProvider.GetProvider(u.Scheme);
+            if (tp == null) {
+                Log.WarnFormat("Failed to get Uri for scheme {0}", u.Scheme);
+                return;
+            }
+
+            Log.DebugFormat("Starting Receiver for {0}", u);     
+            IReceiver rec = tp.GetReceiver(u, queue);
+            Task.Run(() => rec.Receive());
         }
     }
 }

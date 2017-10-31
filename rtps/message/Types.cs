@@ -309,10 +309,13 @@ namespace rtps {
     }
 
     public class SequenceNumber : Type {
-        private long sn;
+        private readonly long sn;
 
         public SequenceNumber(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+            uint high = bb.read_long();
+            uint low = bb.read_long();
+            
+            sn = high << 32 | low;
         }
 
         public SequenceNumber(long sn) {
@@ -324,7 +327,11 @@ namespace rtps {
         }
 
         public override void WriteTo(RtpsByteBuffer bb) {
-            throw new NotImplementedException();
+            uint low = (uint) (sn & 0xffffffff);
+            uint high =  (uint) ((sn >> 32) & 0xffffffff);
+
+            bb.write_long(high);
+            bb.write_long(low);
         }
     }
 
@@ -471,17 +478,59 @@ namespace rtps {
     public class DataEncapsulation {
         public byte[] SerializedPayload { get; internal set; }
 
-        internal bool containsData() {
+        internal bool ContainsData() {
             throw new NotImplementedException();
         }
 
-        internal DataEncapsulation createInstance(byte[] serializedPayload) {
-            throw new NotImplementedException();
+        internal static DataEncapsulation CreateInstance(byte[] serializedPayload) {
+            RtpsByteBuffer bb = new RtpsByteBuffer(serializedPayload);
+            byte[] encapsulationHeader = new byte[2];
+            bb.read(encapsulationHeader);
+
+            short eh = (short) (((short) encapsulationHeader[0] << 8) | (encapsulationHeader[1] & 0xff));
+
+            switch (eh) {
+                case 0:
+                case 1:
+                    bool littleEndian = (eh & 0x1) == 0x1;
+                    bb.IsLittleEndian = littleEndian;
+                    
+                    return new CDREncapsulation(bb);
+                case 2:
+                case 3:
+                    littleEndian = (eh & 0x1) == 0x1;
+                    bb.IsLittleEndian = littleEndian;
+                    
+                    return new ParameterListEncapsulation(bb);
+            }
+
+            // TODO: handle this more gracefully
+            return null;
+        }
+    }
+
+    internal class ParameterListEncapsulation : DataEncapsulation {
+        private ushort _options;
+        private ParameterList _parameters;
+
+        public ParameterListEncapsulation(RtpsByteBuffer bb) {
+            _parameters = new ParameterList(bb);
+            _options = bb.read_short(); // Not used
+        }
+    }
+
+    internal class CDREncapsulation : DataEncapsulation {
+        private readonly RtpsByteBuffer _bb;
+        private ushort _options;
+
+        public CDREncapsulation(RtpsByteBuffer bb) {
+            _bb = bb;
+            _options = bb.read_short(); // Not used
         }
     }
 
 
-        public class Signature {
+    public class Signature {
             private byte[] bytes;
 
             public byte[] Bytes => bytes;

@@ -43,7 +43,7 @@ namespace rtps.message {
             }
 
             if (dEnc != null) {
-                if (dEnc.containsData()) {
+                if (dEnc.ContainsData()) {
                     header.flags |= 0x4; // dataFlag
                 }
                 else {
@@ -69,14 +69,15 @@ namespace rtps.message {
             long start_count = bb.Position; // start of bytes read so far from the
             // beginning
 
-            this.extraFlags = bb.read_short();
+            extraFlags = bb.read_short();
             int octetsToInlineQos = bb.read_short() & 0xffff;
 
             long currentCount = bb.Position; // count bytes to inline qos
 
-            this.readerId = new EntityId(bb);
-            this.writerId = new EntityId(bb);
-            this.writerSN = new SequenceNumber(bb);
+
+            readerId = new EntityId(bb);
+            writerId = new EntityId(bb);
+            writerSN = new SequenceNumber(bb);
 
             long bytesRead = bb.Position - currentCount;
             long unknownOctets = octetsToInlineQos - bytesRead;
@@ -99,7 +100,7 @@ namespace rtps.message {
                 long end_count = bb.Position; // end of bytes read so far from the
                 // beginning
 
-                byte[] serializedPayload = null;
+                byte[] serializedPayload;
                 if (header.submessageLength != 0) {
                     serializedPayload = new byte[header.submessageLength - (end_count - start_count)];
                 }
@@ -109,7 +110,7 @@ namespace rtps.message {
                 }
 
                 bb.read(serializedPayload);
-                dataEncapsulation = DataEncapsulation.createInstance(serializedPayload);
+                dataEncapsulation = DataEncapsulation.CreateInstance(serializedPayload);
             }
         }
 

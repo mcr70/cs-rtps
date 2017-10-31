@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using log4net.Config;
+using rtps.message.builtin;
 
 namespace rtps.message {
     /// <summary>
@@ -10,6 +13,9 @@ namespace rtps.message {
     /// 
     /// </summary>
     public class Message {
+        private static readonly log4net.ILog Log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         private Header header;
         private IList<SubMessage> submessages = new List<SubMessage>();
 
@@ -49,64 +55,68 @@ namespace rtps.message {
 
                 SubMessageHeader smh = new SubMessageHeader(bb);
                 bb.IsLittleEndian = smh.EndiannessFlag();
-
                 long smStart = bb.Position;
 
                 SubMessage sm = null;
 
-                switch (smh.kind) {
-                    case Pad.KIND:
-                        sm = new Pad(smh, bb);
-                        break;
-                    case AckNack.KIND:
-                        sm = new AckNack(smh, bb);
-                        break;
-                    case Heartbeat.KIND:
-                        sm = new Heartbeat(smh, bb);
-                        break;
-                    case Gap.KIND:
-                        sm = new Gap(smh, bb);
-                        break;
-                    case InfoTimestamp.KIND:
-                        sm = new InfoTimestamp(smh, bb);
-                        break;
-                    case InfoSource.KIND:
-                        sm = new InfoSource(smh, bb);
-                        break;
-                    case InfoReplyIp4.KIND:
-                        sm = new InfoReplyIp4(smh, bb);
-                        break;
-                    case InfoDestination.KIND:
-                        sm = new InfoDestination(smh, bb);
-                        break;
-                    case InfoReply.KIND:
-                        sm = new InfoReply(smh, bb);
-                        break;
-                    case NackFrag.KIND:
-                        sm = new NackFrag(smh, bb);
-                        break;
-                    case HeartbeatFrag.KIND:
-                        sm = new HeartbeatFrag(smh, bb);
-                        break;
-                    case Data.KIND:
-                        sm = new Data(smh, bb);
-                        break;
-                    case DataFrag.KIND:
-                        sm = new DataFrag(smh, bb);
-                        break;
-                    case SecureSubMessage.KIND:
-                        sm = new SecureSubMessage(smh, bb);
-                        break;
+                try {
+                    switch (smh.kind) {
+                        case Pad.KIND:
+                            sm = new Pad(smh, bb);
+                            break;
+                        case AckNack.KIND:
+                            sm = new AckNack(smh, bb);
+                            break;
+                        case Heartbeat.KIND:
+                            sm = new Heartbeat(smh, bb);
+                            break;
+                        case Gap.KIND:
+                            sm = new Gap(smh, bb);
+                            break;
+                        case InfoTimestamp.KIND:
+                            sm = new InfoTimestamp(smh, bb);
+                            break;
+                        case InfoSource.KIND:
+                            sm = new InfoSource(smh, bb);
+                            break;
+                        case InfoReplyIp4.KIND:
+                            sm = new InfoReplyIp4(smh, bb);
+                            break;
+                        case InfoDestination.KIND:
+                            sm = new InfoDestination(smh, bb);
+                            break;
+                        case InfoReply.KIND:
+                            sm = new InfoReply(smh, bb);
+                            break;
+                        case NackFrag.KIND:
+                            sm = new NackFrag(smh, bb);
+                            break;
+                        case HeartbeatFrag.KIND:
+                            sm = new HeartbeatFrag(smh, bb);
+                            break;
+                        case Data.KIND:
+                            sm = new Data(smh, bb);
+                            break;
+                        case DataFrag.KIND:
+                            sm = new DataFrag(smh, bb);
+                            break;
+                        case SecureSubMessage.KIND:
+                            sm = new SecureSubMessage(smh, bb);
+                            break;
 
-                    default:
-                        sm = new UnknownSubMessage(smh, bb);
-                        break;
+                        default:
+                            sm = new UnknownSubMessage(smh, bb);
+                            break;
+                    }
+
+                    long smEnd = bb.Position;
+                    long smLength = smEnd - smStart;
+
+                    submessages.Add(sm);
                 }
-
-                long smEnd = bb.Position;
-                long smLength = smEnd - smStart;
-
-                submessages.Add(sm);
+                catch (Exception e) {
+                    Log.WarnFormat("Failed to parse submessage {0}", smh.Kind);
+                }
             }
         }
 
@@ -259,7 +269,7 @@ namespace rtps.message {
 
             hdrStart = new byte[4];
             bb.read(hdrStart);
-            if (!Array.Equals(HDR_START, hdrStart)) {
+            if (!HDR_START.SequenceEqual(hdrStart)) {
                 throw new IllegalMessageException("Illegal message header start bytes: " + string.Join(",", hdrStart) +
                                                   ", expected " + string.Join(",", HDR_START));
             }

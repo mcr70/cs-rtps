@@ -1,3 +1,5 @@
+using rtps.message.builtin;
+
 namespace rtps.message {
     /// <summary>
     /// This message modifies the logical source of the Submessages that follow.

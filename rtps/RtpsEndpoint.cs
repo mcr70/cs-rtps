@@ -52,7 +52,7 @@ namespace rtps {
         protected void SendMessage(Message msg, TProxyType proxy) {
             Locator loc = proxy.GetLocator();
             if (loc != null) {
-                TransportProvider provider = TransportProvider.getProvider(loc.Kind);
+                TransportProvider provider = TransportProvider.GetProvider(loc.Kind);
                 ITransmitter tr = provider.GetTransmitter(loc);
                 tr.SendMessage(msg);
             }

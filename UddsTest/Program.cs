@@ -18,6 +18,7 @@ namespace UddsTest {
             var dr2 = p.CreateDataReader<object>(SubscriptionData.BUILTIN_TOPIC_NAME);
             
             Console.WriteLine("Closing UddsTest");
+            Console.ReadLine();
         }
     }
 }

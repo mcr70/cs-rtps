@@ -82,14 +82,20 @@ namespace rtps.message.builtin {
     }
 
     public class UnknownParameter : Parameter {
+        private readonly ParameterId _id;
         private readonly byte[] _bytes;
 
-        internal UnknownParameter(byte[] bytes) : base(ParameterId.PID_UNKNOWN_PARAMETER) {
+        internal UnknownParameter(ParameterId id, byte[] bytes) : base(ParameterId.PID_UNKNOWN_PARAMETER) {
+            _id = id;
             _bytes = bytes;
         }
 
         public override void WriteTo(RtpsByteBuffer buffer) {
             buffer.write(_bytes);
+        }
+
+        public string ToString() {
+            return "UnknownParameter(" + _id + ")";
         }
     }
 
@@ -149,10 +155,9 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_METATRAFFIC_MULTICAST_LOCATOR:
                     return new LocatorParam(bb, (ParameterId) paramId);
                     break;
-                case ParameterId.PID_PAD:
-                    break;
                 case ParameterId.PID_SENTINEL:
-                    break;
+                    return new Sentinel();
+                case ParameterId.PID_PAD:
                 case ParameterId.PID_PARTICIPANT_LEASE_DURATION:
                 case ParameterId.PID_PERSISTENCE:
                 case ParameterId.PID_TIME_BASED_FILTER:
@@ -229,7 +234,7 @@ namespace rtps.message.builtin {
                 default:
                     var bytes = new byte[paramLength];
                     bb.read(bytes);
-                    param = new UnknownParameter(bytes);
+                    param = new UnknownParameter((ParameterId) paramId, bytes);
                     break;
             }
 

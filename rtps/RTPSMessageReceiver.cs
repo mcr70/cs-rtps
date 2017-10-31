@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using rtps.message;
 
 namespace rtps {
@@ -22,9 +23,15 @@ namespace rtps {
         // per recipient. Or maybe some other scenario.
         public void Run() {
             while (_running) {
-                byte[] bytes = _queue.Take(); // TODO: CancellationToken
-                Message m = new Message(new RtpsByteBuffer(bytes));
-                handleMessage(m);
+                foreach (var bytes in _queue.GetConsumingEnumerable()) {
+                    try {
+                        Message m = new Message(new RtpsByteBuffer(bytes));
+                        handleMessage(m);
+                    }
+                    catch (Exception e) {
+                        Log.Error("Failed to receive Message", e);
+                    }
+                }
             }
         }
 

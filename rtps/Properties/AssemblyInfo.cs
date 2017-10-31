@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 // Change them to the values specific to your project.
 
 [assembly: AssemblyTitle ("rtps")]
-[assembly: AssemblyDescription ("")]
+[assembly: AssemblyDescription ("An implementation of RTPS protocol")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany ("")]
 [assembly: AssemblyProduct ("")]

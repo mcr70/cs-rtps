@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -10,12 +11,17 @@ namespace rtps.transport {
         private static readonly log4net.ILog Log = 
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Dictionary<string, TransportProvider> _providersForScheme = new Dictionary<string, TransportProvider>();
-        private static Dictionary<uint, TransportProvider> _providersForKind = new Dictionary<uint, TransportProvider>();
+        private static readonly Dictionary<string, TransportProvider> _providersForScheme = new Dictionary<string, TransportProvider>();
+        private static readonly Dictionary<uint, TransportProvider> _providersForKind = new Dictionary<uint, TransportProvider>();
+
+        static TransportProvider() {
+            UdpProvider u = new UdpProvider();
+            Register(u);
+        }
         
         public static void Register(TransportProvider provider) {
-            Log.DebugFormat("Registering provider for scheme '{0}', kind {1}: {2}", 
-                provider.GetScheme(), provider.GetKinds(), provider.GetType().Name);
+            Log.DebugFormat("Registering {0} for scheme '{1}', kinds [{2}]", 
+                provider.GetType().Name, provider.GetScheme(), string.Join(", ", provider.GetKinds()));
             
             _providersForScheme[provider.GetScheme()] = provider;
             foreach (var k in provider.GetKinds()) {
@@ -23,14 +29,21 @@ namespace rtps.transport {
             }
         }
 
-        public static TransportProvider getProvider(uint kind) {
+        public static TransportProvider GetProvider(uint kind) {
             return _providersForKind[kind];
+        }
+
+        public static TransportProvider GetProvider(string scheme) {
+            TransportProvider tp;
+            _providersForScheme.TryGetValue(scheme, out tp);
+
+            return tp;
         }
 
         public abstract string GetScheme();
         public abstract uint[] GetKinds();
         public abstract ITransmitter GetTransmitter(Locator loc);
-        public abstract IReceiver GetReceiver(Locator loc, BlockingCollection<byte[]> queue);
+        public abstract IReceiver GetReceiver(Uri uri, BlockingCollection<byte[]> queue);
     }
 
     public interface IReceiver {
@@ -47,7 +60,7 @@ namespace rtps.transport {
 
     public class UdpProvider : TransportProvider {
         Dictionary<Locator, UdpTransmitter> _transmitters = new Dictionary<Locator, UdpTransmitter>();
-        Dictionary<Locator, UdpReceiver> _receivers = new Dictionary<Locator, UdpReceiver>();
+        Dictionary<Uri, UdpReceiver> _receivers = new Dictionary<Uri, UdpReceiver>();
         
         public override string GetScheme() {
             return "udp";
@@ -58,8 +71,8 @@ namespace rtps.transport {
         }
 
         public override ITransmitter GetTransmitter(Locator loc) {
-            UdpTransmitter tr = _transmitters[loc];
-            if (tr == null) {
+            UdpTransmitter tr;
+            if (!_transmitters.TryGetValue(loc, out tr)) {
                 tr = new UdpTransmitter(loc);
                 _transmitters[loc] = tr;
             }
@@ -67,11 +80,11 @@ namespace rtps.transport {
             return tr;
         }
 
-        public override IReceiver GetReceiver(Locator loc, BlockingCollection<byte[]> queue) {
-            UdpReceiver r = _receivers[loc];
-            if (r == null) {
-                r = new UdpReceiver((int)loc.Port, queue);
-                _receivers[loc] = r;
+        public override IReceiver GetReceiver(Uri uri, BlockingCollection<byte[]> queue) {
+            UdpReceiver r;
+            if (!_receivers.TryGetValue(uri, out r)) {
+                r = new UdpReceiver(uri.Port, queue);
+                _receivers[uri] = r;
             }
 
             return r;
