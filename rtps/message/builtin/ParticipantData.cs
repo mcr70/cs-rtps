@@ -14,14 +14,14 @@ namespace rtps.message.builtin {
             var parms = Parameters.Where(p => p.Id == ParameterId.PID_METATRAFFIC_MULTICAST_LOCATOR ||
                                               p.Id == ParameterId.PID_METATRAFFIC_UNICAST_LOCATOR);
             foreach (var p in parms) {
-                _discoveryLocators.Add(((LocatorParam)p).GetLocator());
+                _discoveryLocators.Add(((LocatorParam)p).Locator);
             }
             
             // Find user data locators
             var uLocs = Parameters.Where(p => p.Id == ParameterId.PID_DEFAULT_MULTICAST_LOCATOR ||
                                               p.Id == ParameterId.PID_DEFAULT_UNICAST_LOCATOR);
             foreach (var p in uLocs) {
-                _userdataLocators.Add(((LocatorParam)p).GetLocator());
+                _userdataLocators.Add(((LocatorParam)p).Locator);
             }
         }
 

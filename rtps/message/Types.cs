@@ -29,6 +29,22 @@ namespace rtps {
         public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
+    public class Duration : Type {
+        private uint sec;
+        private uint nano;
+
+        internal Duration(RtpsByteBuffer bb) {
+            sec = bb.read_long();
+            nano = bb.read_long();
+        }
+        
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write_long(sec);
+            bb.write_long(nano);
+        }
+    }
+    
+    
     public class Guid : Type {
         public static readonly Guid UNKNOWN = new Guid(GuidPrefix.UNKNOWN, EntityId.UNKNOWN);
         

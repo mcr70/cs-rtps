@@ -25,8 +25,8 @@ namespace rtps {
             // check if proxys discovery data contains locator info
             if (!(DiscoveredData.GetType() == typeof(ParticipantData))) {
                 foreach (var p in DiscoveredData.Parameters) {
-                    if (p.GetType() == typeof(LocatorParam)) { // LocatorParam??
-                        locators.Add(((LocatorParam)p).GetLocator());
+                    if (p.GetType() == typeof(LocatorParam)) {
+                        locators.Add(((LocatorParam)p).Locator);
                     }
                 }
             }
@@ -139,6 +139,28 @@ namespace rtps {
             return new SequenceNumberSet(_base, numBits);
         }
 
+        /// <summary>
+        /// Checks, whether or not Data being received should be accepted or not
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="reliable"></param>
+        /// <returns></returns>
+        public bool ApplyData(Data data, bool reliable) {
+            if (data.WriterSequenceNumber > SeqNumMax) {
+                // TODO: What to do with this??? Now we just accept data, and miss out of order data
+                
+                //if (reliable && data.WriterSequenceNumber > SeqNumMax + 1 && SeqNumMax != 0) {
+                //    Log.WarnFormat("Accepting data even though some data has been missed: offered seq-num {0}, my received seq-num {1}",
+                //            data.WriterSequenceNumber, SeqNumMax);
+                //}
+    
+                SeqNumMax = data.WriterSequenceNumber;
+    
+                return true;
+            }
+
+            return false;
+        }
     }
 
     public class ReaderProxy : RemoteProxy {

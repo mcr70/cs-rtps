@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 
 namespace rtps.message.builtin {
     public abstract class Parameter {
@@ -20,6 +21,26 @@ namespace rtps.message.builtin {
         }
     }
 
+    public class ProtocolVersion : Parameter {
+        private readonly byte[] _version;
+        
+        public byte Major => _version[0];
+        public byte Minor => _version[1];
+        
+        public ProtocolVersion(byte major, byte minor) : base(ParameterId.PID_PROTOCOL_VERSION) {
+            _version = new byte[] { major, minor };
+        }
+        
+        internal ProtocolVersion(RtpsByteBuffer bb) : base(ParameterId.PID_PROTOCOL_VERSION) {
+            _version = new byte[2];
+            bb.read(_version);
+        }
+
+        public override void WriteTo(RtpsByteBuffer buffer) {
+            buffer.write(_version);
+        }
+    }
+    
     public class VendorId : Parameter {
         public static readonly VendorId JRTPS = new VendorId(new byte[] {(byte) 0x01, (byte) 0x21});
 
@@ -29,7 +50,7 @@ namespace rtps.message.builtin {
             _bytes = bytes;
         }
 
-        public VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDORID) {
+        internal VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDORID) {
             _bytes = new byte[2];
             bb.read(_bytes);
         }
@@ -38,6 +59,20 @@ namespace rtps.message.builtin {
             bb.write(_bytes);
         }
     }
+
+
+    public class ParticipantGuid : Parameter {
+        public Guid Guid { get; internal set; }
+
+        internal ParticipantGuid(RtpsByteBuffer bb) : base(ParameterId.PID_PARTICIPANT_GUID) {
+            Guid = new Guid(bb);
+        }
+
+        public override void WriteTo(RtpsByteBuffer buffer) {
+            Guid.WriteTo(buffer);
+        }
+    }
+    
     
     public class StatusInfo : Parameter {
         public StatusInfo() : base(ParameterId.PID_STATUS_INFO) {
@@ -93,10 +128,6 @@ namespace rtps.message.builtin {
         public override void WriteTo(RtpsByteBuffer buffer) {
             buffer.write(_bytes);
         }
-
-        public string ToString() {
-            return "UnknownParameter(" + _id + ")";
-        }
     }
 
     public class BuiltinTopicKey : Parameter {
@@ -116,22 +147,60 @@ namespace rtps.message.builtin {
     }
 
     public class LocatorParam : Parameter {
-        private Locator _locator;
+        public Locator Locator { get; internal set; }
 
-        public LocatorParam(RtpsByteBuffer bb, ParameterId pid) : base(pid) {
-            _locator = new Locator(bb);
-        }
-
-        public Locator GetLocator() {
-            return _locator;
+        internal LocatorParam(RtpsByteBuffer bb, ParameterId pid) : base(pid) {
+            Locator = new Locator(bb);
         }
 
         public override void WriteTo(RtpsByteBuffer buffer) {
-            _locator.WriteTo(buffer);
+            Locator.WriteTo(buffer);
         }
     }
 
+    public class EndpointSet : Parameter {
+        public uint endpoints { get; internal set; }
+
+        internal EndpointSet(RtpsByteBuffer bb, ParameterId pid) : base(pid) {
+            endpoints = bb.read_long();
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write_long(endpoints);
+        }
+    }
+    
+    public class QosUserData : Parameter {
+        public byte[] user_data { get; internal set; }
+
+        internal QosUserData(RtpsByteBuffer bb, uint lenght) : base(ParameterId.PID_USER_DATA) {
+            user_data = new byte[lenght];
+            bb.read(user_data);
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write(user_data);
+        }
+    }
+    
+    public class ParticipantLeaseDuration : Parameter {
+        public Duration Duration { get; internal set; }
+
+        internal ParticipantLeaseDuration(RtpsByteBuffer bb) : base(ParameterId.PID_USER_DATA) {
+            Duration = new Duration(bb);
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb) {
+            Duration.WriteTo(bb);
+        }
+    }
+    
+    // ---------------------------------------------------------------------------
+
     public class ParameterFactory {
+        private static readonly log4net.ILog Log = 
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        
         internal static Parameter ReadParameter(RtpsByteBuffer bb) {
             bb.align(4);
 
@@ -154,11 +223,22 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_METATRAFFIC_UNICAST_LOCATOR:
                 case ParameterId.PID_METATRAFFIC_MULTICAST_LOCATOR:
                     return new LocatorParam(bb, (ParameterId) paramId);
-                    break;
                 case ParameterId.PID_SENTINEL:
                     return new Sentinel();
-                case ParameterId.PID_PAD:
+                case ParameterId.PID_VENDORID:
+                    return new VendorId(bb);    
+                case ParameterId.PID_PROTOCOL_VERSION:
+                    return new ProtocolVersion(bb);
+                case ParameterId.PID_PARTICIPANT_GUID:
+                    return new ParticipantGuid(bb);
+                case ParameterId.PID_PARTICIPANT_BUILTIN_ENDPOINTS:
+                case ParameterId.PID_BUILTIN_ENDPOINT_SET:
+                    return new EndpointSet(bb, (ParameterId)paramId);
+                case ParameterId.PID_USER_DATA:
+                    return new QosUserData(bb, paramLength);                    
                 case ParameterId.PID_PARTICIPANT_LEASE_DURATION:
+                    return new ParticipantLeaseDuration(bb);
+                case ParameterId.PID_PAD:
                 case ParameterId.PID_PERSISTENCE:
                 case ParameterId.PID_TIME_BASED_FILTER:
                 case ParameterId.PID_TOPIC_NAME:
@@ -176,8 +256,6 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_MANAGER_KEY:
                 case ParameterId.PID_SEND_QUEUE_SIZE:
                 case ParameterId.PID_RELIABILITY_ENABLED:
-                case ParameterId.PID_PROTOCOL_VERSION:
-                case ParameterId.PID_VENDORID:
                 case ParameterId.PID_VARGAPPS_SEQUENCE_NUMBER_LAST:
                 case ParameterId.PID_RECV_QUEUE_SIZE:
                 case ParameterId.PID_RELIABILITY_OFFERED:
@@ -192,7 +270,6 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_LATENCY_BUDGET:
                 case ParameterId.PID_PARTITION:
                 case ParameterId.PID_LIFESPAN:
-                case ParameterId.PID_USER_DATA:
                 case ParameterId.PID_GROUP_DATA:
                 case ParameterId.PID_TOPIC_DATA:
                 case ParameterId.PID_PARTICIPANT_MANUAL_LIVELINESS_COUNT:
@@ -200,18 +277,15 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_HISTORY:
                 case ParameterId.PID_RESOURCE_LIMITS:
                 case ParameterId.PID_EXPECTS_INLINE_QOS:
-                case ParameterId.PID_PARTICIPANT_BUILTIN_ENDPOINTS:
                 case ParameterId.PID_METATRAFFIC_UNICAST_IPADDRESS:
                 case ParameterId.PID_METATRAFFIC_MULTICAST_PORT:
                 case ParameterId.PID_TRANSPORT_PRIORITY:
-                case ParameterId.PID_PARTICIPANT_GUID:
                 case ParameterId.PID_PARTICIPANT_ENTITYID:
                 case ParameterId.PID_GROUP_GUID:
                 case ParameterId.PID_GROUP_ENTITYID:
                 case ParameterId.PID_CONTENT_FILTER_INFO:
                 case ParameterId.PID_COHERENT_SET:
                 case ParameterId.PID_DIRECTED_WRITE:
-                case ParameterId.PID_BUILTIN_ENDPOINT_SET:
                 case ParameterId.PID_PROPERTY_LIST:
                 case ParameterId.PID_TYPE_MAX_SIZE_SERIALIZED:
                 case ParameterId.PID_ORIGINAL_WRITER_INFO:
@@ -232,6 +306,7 @@ namespace rtps.message.builtin {
                 case ParameterId.PID_UNKNOWN_PARAMETER:
                 case ParameterId.PID_X509CERT:
                 default:
+                    Log.DebugFormat("Reading unknown parameter 0x{0}", paramId.ToString("X4"));
                     var bytes = new byte[paramLength];
                     bb.read(bytes);
                     param = new UnknownParameter((ParameterId) paramId, bytes);

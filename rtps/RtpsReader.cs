@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using rtps.message;
 using rtps.message.builtin;
 
@@ -8,6 +9,7 @@ namespace rtps {
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint _ackNackCount = 0;
+        private HistoryCache rCache = new HistoryCache();
         
         public RtpsReader(Guid guid, bool reliable = false) : base(guid, reliable) {
         }
@@ -47,17 +49,41 @@ namespace rtps {
 
         public void OnData(GuidPrefix senderPrefix, Data data, Time timestamp) {
             Guid remoteGuid = new Guid(senderPrefix, data.WriterId);
-            WriterProxy wp;
+            
+            WriterProxy wp = getWriterProxy(remoteGuid);
             if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
-                // TODO: Implement me
+                if (wp.ApplyData(data, Reliable)) {
+                    Log.Debug("Adding change to history cache " + data.WriterSequenceNumber);
+                    rCache.AddChange(0, remoteGuid, data, timestamp);                    
+                }
             }
             else {
                 Log.DebugFormat("Discarding Data from unknown writer: {0}", remoteGuid);                
             }
         }
-        
-        protected override WriterProxy CreateProxy(PublicationData dd) {
-            return new WriterProxy(dd);
+
+        private WriterProxy getWriterProxy(Guid remoteGuid) {
+            WriterProxy wp;
+            if (!RemoteProxies.TryGetValue(remoteGuid, out wp) &&
+                EntityId.SPDP_BUILTIN_PARTICIPANT_WRITER.Equals(remoteGuid.EntityId)) {
+                
+                Log.DebugFormat("Creating proxy for SPDP writer {0}", remoteGuid.EntityId);
+                
+                PublicationData pd = new PublicationData(ParticipantData.BUILTIN_TOPIC_NAME,
+                    typeof(PublicationData), remoteGuid);
+
+                wp = CreateProxy(pd);
+            }
+
+            return wp;
+        }
+
+
+        protected override WriterProxy CreateProxy(PublicationData pd) {
+            WriterProxy wp = new WriterProxy(pd);
+            RemoteProxies[pd.BuiltinTopicKey] = wp;
+
+            return wp;
         }
     }
 }
