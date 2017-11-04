@@ -55,7 +55,7 @@ namespace rtps {
             if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
                 if (wp.ApplyData(data, Reliable)) {
                     Log.Debug("Adding change to history cache " + data.WriterSequenceNumber);
-                    rCache.AddSamples(0, remoteGuid, new Sample(data, timestamp));
+                    rCache.AddSamples(remoteGuid, new Sample(data, timestamp));
                 }
             }
             else {

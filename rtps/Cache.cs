@@ -22,6 +22,6 @@ namespace rtps {
     }
     
     public interface IReaderCache {
-        void AddSamples(int id, Guid guid, params Sample[] samples);
+        void AddSamples(Guid guid, params Sample[] samples);
     }
 }
