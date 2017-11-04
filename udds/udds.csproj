@@ -36,6 +36,7 @@
     <Compile Include="DataReader.cs" />
     <Compile Include="DataWriter.cs" />
     <Compile Include="Entity.cs" />
+    <Compile Include="HistoryCache.cs" />
     <Compile Include="Participant.cs" />
     <Compile Include="tests\UnitTests.cs" />
   </ItemGroup>

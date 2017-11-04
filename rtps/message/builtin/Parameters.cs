@@ -9,14 +9,14 @@ namespace rtps.message.builtin {
             Id = id;
         }
 
-        public abstract void WriteTo(RtpsByteBuffer buffer);
+        public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
     public class Sentinel : Parameter {
         public Sentinel() : base(ParameterId.PID_SENTINEL) {
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
+        public override void WriteTo(RtpsByteBuffer bb) {
             // No Content
         }
     }
@@ -36,8 +36,8 @@ namespace rtps.message.builtin {
             bb.read(_version);
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            buffer.write(_version);
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write(_version);
         }
     }
     
@@ -68,18 +68,38 @@ namespace rtps.message.builtin {
             Guid = new Guid(bb);
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            Guid.WriteTo(buffer);
+        public override void WriteTo(RtpsByteBuffer bb) {
+            Guid.WriteTo(bb);
         }
     }
-    
-    
+
+    public enum ChangeKind {
+        Write, Dispose, Unregister
+    }
     public class StatusInfo : Parameter {
-        public StatusInfo() : base(ParameterId.PID_STATUS_INFO) {
+        private readonly byte[] _flags = new byte[4];
+
+        public StatusInfo(params ChangeKind[] kinds) : base(ParameterId.PID_STATUS_INFO) {
+            foreach (var k in kinds) {
+                switch (k) {
+                    case ChangeKind.Dispose:
+                        _flags[3] |= 0x1;
+                        break;
+                    case ChangeKind.Unregister:
+                        _flags[3] |= 0x2;
+                        break;
+                    case ChangeKind.Write:
+                        break; // Ignore
+                }
+            }
+        }
+        
+        public StatusInfo(RtpsByteBuffer bb) : base(ParameterId.PID_STATUS_INFO) {
+            bb.read(_flags);
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            throw new NotImplementedException();
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write(_flags);
         }
     }
 
@@ -125,8 +145,8 @@ namespace rtps.message.builtin {
             _bytes = bytes;
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            buffer.write(_bytes);
+        public override void WriteTo(RtpsByteBuffer bb) {
+            bb.write(_bytes);
         }
     }
 
@@ -141,8 +161,8 @@ namespace rtps.message.builtin {
             Guid = guid;
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            Guid.WriteTo(buffer);
+        public override void WriteTo(RtpsByteBuffer bb) {
+            Guid.WriteTo(bb);
         }
     }
 
@@ -153,8 +173,8 @@ namespace rtps.message.builtin {
             Locator = new Locator(bb);
         }
 
-        public override void WriteTo(RtpsByteBuffer buffer) {
-            Locator.WriteTo(buffer);
+        public override void WriteTo(RtpsByteBuffer bb) {
+            Locator.WriteTo(bb);
         }
     }
 

@@ -14,15 +14,11 @@ namespace rtps {
         private static readonly log4net.ILog Log = 
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        
-        
         public bool Reliable { get; }
-
-        protected readonly Dictionary<Guid, TProxyType> RemoteProxies = 
-            new Dictionary<Guid, TProxyType>();
-
+        protected readonly Dictionary<Guid, TProxyType> RemoteProxies = new Dictionary<Guid, TProxyType>();
         public readonly Guid Guid;
 
+        
         protected RtpsEndpoint(Guid guid, bool reliable) {
             Reliable = reliable;
             Guid = guid;

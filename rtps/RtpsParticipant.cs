@@ -18,15 +18,15 @@ namespace rtps {
             Guid = guid;
         }
 
-        public RtpsReader CreateReader(EntityId eid, HistoryCache rCache) {
+        public RtpsReader CreateReader(EntityId eid, IReaderCache rCache) {
             Guid rGuid = new Guid(Guid.Prefix, eid);
-            RtpsReader reader = new RtpsReader(rGuid);
+            RtpsReader reader = new RtpsReader(rGuid, rCache);
             _readers[eid] = reader;
             
             return reader;
         }
 
-        public RtpsWriter CreateWriter(EntityId eid, HistoryCache rCache) {
+        public RtpsWriter CreateWriter(EntityId eid, IWriterCache rCache) {
             Guid wGuid = new Guid(Guid.Prefix, eid);
             RtpsWriter writer = new RtpsWriter(wGuid);
             _writers[eid] = writer;

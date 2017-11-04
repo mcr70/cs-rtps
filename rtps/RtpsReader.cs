@@ -1,17 +1,18 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using rtps.message;
 using rtps.message.builtin;
 
 namespace rtps {
+        
     public class RtpsReader : RtpsEndpoint<WriterProxy, PublicationData> {
         private static readonly log4net.ILog Log = 
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private uint _ackNackCount = 0;
-        private HistoryCache rCache = new HistoryCache();
+        private uint _ackNackCount;
+        private readonly IReaderCache rCache;
         
-        public RtpsReader(Guid guid, bool reliable = false) : base(guid, reliable) {
+        public RtpsReader(Guid guid, IReaderCache rCache, bool reliable = false) : base(guid, reliable) {
+            this.rCache = rCache;
         }
 
         
@@ -54,11 +55,12 @@ namespace rtps {
             if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
                 if (wp.ApplyData(data, Reliable)) {
                     Log.Debug("Adding change to history cache " + data.WriterSequenceNumber);
-                    rCache.AddChange(0, remoteGuid, data, timestamp);                    
+                    rCache.AddSamples(0, remoteGuid, new Sample(data, timestamp));
                 }
             }
             else {
-                Log.DebugFormat("Discarding Data from unknown writer: {0}", remoteGuid);                
+                Log.DebugFormat("{0}, Discarding Data from unknown writer: {1}", 
+                    Guid.EntityId, remoteGuid);                
             }
         }
 
@@ -67,7 +69,8 @@ namespace rtps {
             if (!RemoteProxies.TryGetValue(remoteGuid, out wp) &&
                 EntityId.SPDP_BUILTIN_PARTICIPANT_WRITER.Equals(remoteGuid.EntityId)) {
                 
-                Log.DebugFormat("Creating proxy for SPDP writer {0}", remoteGuid.EntityId);
+                Log.DebugFormat("{0}, Creating proxy for SPDP writer {1}", 
+                    Guid.EntityId, remoteGuid);
                 
                 PublicationData pd = new PublicationData(ParticipantData.BUILTIN_TOPIC_NAME,
                     typeof(PublicationData), remoteGuid);

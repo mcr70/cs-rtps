@@ -64,7 +64,7 @@ namespace udds {
                 return _dataWriters[eId] as DataWriter<T>;
             }
             
-            HistoryCache wCache = null; // TODO: implement me
+            IWriterCache wCache = null; // TODO: implement me
             var rtpsWriter = _rtpsParticipant.CreateWriter(eId, wCache); 
             var writer = new DataWriter<T>(this, topicName, rtpsWriter);
             _dataWriters[eId] = writer;
@@ -114,7 +114,7 @@ namespace udds {
                 return _dataWriters[eId] as DataReader<T>;
             }
 
-            HistoryCache rCache = null; // TODO: implement me
+            IReaderCache rCache = new HistoryCache(); // TODO: implement me
             var rtpsReader = _rtpsParticipant.CreateReader(eId, rCache); 
             var reader = new DataReader<T>(this, topicName, rtpsReader);
             _dataReaders[eId] = reader;
