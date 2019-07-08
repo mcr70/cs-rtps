@@ -6,22 +6,11 @@ using System.Linq;
 using rtps.message;
 using rtps.message.builtin;
 
-namespace rtps {
-    internal static class ExtensionMethods {
-        internal static int GetByteArrayHashCode(this byte[] array) {
-            unchecked {
-                int hash = 17;
-                foreach (var value in array) {
-                    hash = hash * 23 + value.GetHashCode();            
-                }
+namespace rtps
+{
 
-                return hash;
-            }
-        }
-    }
-    
-    
-    public abstract class Type {
+    public abstract class Type
+    {
         /// <summary>
         /// Writes this type into RtpsByteBuffer
         /// </summary>
@@ -29,127 +18,176 @@ namespace rtps {
         public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
-    public class Duration : Type {
+    public class Duration : Type
+    {
         private uint sec;
         private uint nano;
 
-        internal Duration(RtpsByteBuffer bb) {
+        internal Duration(RtpsByteBuffer bb)
+        {
             sec = bb.read_long();
             nano = bb.read_long();
         }
-        
-        public override void WriteTo(RtpsByteBuffer bb) {
+
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write_long(sec);
             bb.write_long(nano);
         }
     }
-    
-    
-    public class Guid : Type {
+
+
+    public class Guid : Type
+    {
         public static readonly Guid UNKNOWN = new Guid(GuidPrefix.UNKNOWN, EntityId.UNKNOWN);
-        
+
         public GuidPrefix Prefix { get; }
         public EntityId EntityId { get; }
 
-        internal Guid(RtpsByteBuffer bb) {
+        internal Guid(RtpsByteBuffer bb)
+        {
             Prefix = new GuidPrefix(bb);
             EntityId = new EntityId(bb);
         }
-        
-        public Guid(GuidPrefix prefix, EntityId eid) {
+
+        public Guid(GuidPrefix prefix, EntityId eid)
+        {
             Prefix = prefix;
             EntityId = eid;
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return Prefix.GetHashCode() ^ EntityId.GetHashCode();
         }
 
-        public override bool Equals(object other) {
-            if (other != null && other.GetType() == GetType()) {
+        public override bool Equals(object other)
+        {
+            if (other != null && other.GetType() == GetType())
+            {
                 var otherGuid = (Guid)other;
                 return Prefix.Equals(otherGuid.Prefix) && EntityId.Equals(otherGuid.EntityId);
             }
-            
+
             return false;
         }
 
-        public override String ToString() {
+        public override String ToString()
+        {
             return Prefix + ", " + EntityId;
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             Prefix.WriteTo(bb);
             EntityId.WriteTo(bb);
         }
     }
-    
-    public class GuidPrefix : Type {
+
+    public class GuidPrefix : Type
+    {
         public static readonly GuidPrefix UNKNOWN = new GuidPrefix();
         private readonly byte[] bytes;
 
-        private GuidPrefix() : this(new byte[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}) {
+        private GuidPrefix() : this(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+        {
         }
-   
 
-        public GuidPrefix(byte[] bytes) {
-            if (bytes.Length != 12) {
+
+        public GuidPrefix(byte[] bytes)
+        {
+            if (bytes.Length != 12)
+            {
                 throw new ArgumentException("Length of byte array for GuidPrefix must be 12");
             }
-            
+
             this.bytes = bytes;
         }
-        
-        public GuidPrefix(RtpsByteBuffer bb) {
+
+        public GuidPrefix(RtpsByteBuffer bb)
+        {
             bytes = new byte[12];
             bb.read(bytes);
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write(bytes);
         }
 
-        public override bool Equals(object other) {
-            if (other != null && GetType() == other.GetType()) {
-                GuidPrefix otherPrefix = (GuidPrefix) other;
+        public override bool Equals(object obj)
+        {
+            if (obj != null && GetType() == obj.GetType())
+            {
+                GuidPrefix otherPrefix = (GuidPrefix)obj;
                 return bytes.SequenceEqual(otherPrefix.bytes);
             }
             return false;
         }
-        
-        public override int GetHashCode() {
-            return bytes.GetByteArrayHashCode();
+
+        public override int GetHashCode()
+        {
+            return bytes.HashCode();
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return bytes.ToString(",");
         }
     }
 
-    public class ProtocolVersion : Type {
+    public class ProtocolVersion : Type
+    {
         public static readonly ProtocolVersion PROTOCOLVERSION_2_1 = new ProtocolVersion();
 
         private readonly byte[] bytes;
 
-        private ProtocolVersion() {
-            bytes = new byte[] {2, 1};
+        private ProtocolVersion()
+        {
+            bytes = new byte[] { 2, 1 };
         }
 
-        public ProtocolVersion(RtpsByteBuffer bb) {
+        public ProtocolVersion(RtpsByteBuffer bb)
+        {
             bytes = new byte[2];
             bb.read(bytes);
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write(bytes);
         }
     }
 
 
+    public class VendorId : Type
+    {
+        public static readonly VendorId JRTPS = new VendorId(new byte[] { (byte)0x01, (byte)0x21 });
 
-    public class EntityId : Type {
-        public static readonly EntityId UNKNOWN = new EntityId(new byte[] {0, 0, 0}, 0);
-        
+        private byte[] _bytes;
+
+        private VendorId(byte[] bytes)
+        {
+            _bytes = bytes;
+        }
+
+        public VendorId(RtpsByteBuffer bb)
+        {
+            _bytes = new byte[2];
+            bb.read(_bytes);
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            bb.write(_bytes);
+        }
+    }
+
+
+    public class EntityId : Type
+    {
+        public static readonly EntityId UNKNOWN = new EntityId(new byte[] { 0, 0, 0 }, 0);
+
         public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_WRITER =
             new EntityId(new byte[] { 0, 1, 0 }, 0xc2);
         public static readonly EntityId SPDP_BUILTIN_PARTICIPANT_READER =
@@ -160,25 +198,25 @@ namespace rtps {
         public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_READER =
             new EntityId(new byte[] { 0, 2, 0 }, 0xc7);
 
-        public static readonly EntityId PARTICIPANT = 
-            new EntityId(new byte[] { 0, 0, 1 }, (byte) 0xc1);
-        
-        public static readonly EntityId SEDP_BUILTIN_TOPIC_WRITER = 
+        public static readonly EntityId PARTICIPANT =
+            new EntityId(new byte[] { 0, 0, 1 }, (byte)0xc1);
+
+        public static readonly EntityId SEDP_BUILTIN_TOPIC_WRITER =
             new EntityId(new byte[] { 0, 0, 2 }, 0xc2);
-        public static readonly EntityId SEDP_BUILTIN_TOPIC_READER = 
+        public static readonly EntityId SEDP_BUILTIN_TOPIC_READER =
             new EntityId(new byte[] { 0, 0, 2 }, 0xc7);
         public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_WRITER =
             new EntityId(new byte[] { 0, 0, 3 }, 0xc2);
         public static readonly EntityId SEDP_BUILTIN_PUBLICATIONS_READER =
             new EntityId(new byte[] { 0, 0, 3 }, 0xc7);
-        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_WRITER = 
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_WRITER =
             new EntityId(new byte[] { 0, 0, 4 }, 0xc2);
-        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_READER = 
+        public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_READER =
             new EntityId(new byte[] { 0, 0, 4 }, 0xc7);
 
         // From Security
         public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_WRITER =
-            new EntityId(new byte[] { 0, 2, 1 }, 0xc2); 
+            new EntityId(new byte[] { 0, 2, 1 }, 0xc2);
         public static readonly EntityId BUILTIN_PARTICIPANT_STATELESS_READER =
             new EntityId(new byte[] { 0, 2, 1 }, 0xc7);
         public static readonly EntityId BUILTIN_PARTICIPANT_VOLATILE_MESSAGE_SECURE_WRITER =
@@ -195,11 +233,11 @@ namespace rtps {
         public static readonly EntityId SEDP_BUILTIN_SUBSCRIPTIONS_SECURE_READER =
             new EntityId(new byte[] { 0xff, 0, 4 }, 0xc7);
         public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_SECURE_WRITER =
-            new EntityId(new byte[] { 0xff, 2, 0 }, 0xc2); 
+            new EntityId(new byte[] { 0xff, 2, 0 }, 0xc2);
         public static readonly EntityId BUILTIN_PARTICIPANT_MESSAGE_SECURE_READER =
             new EntityId(new byte[] { 0xff, 2, 0 }, 0xc7);
-        
-        
+
+
         private readonly byte[] _entityKey;
 
         // 0x02:writer_key, 0x03:writer_no_key,
@@ -207,77 +245,93 @@ namespace rtps {
         private readonly byte _entityKind;
 
 
-        public EntityId(byte[] entityKey, byte entityKind) {
+        public EntityId(byte[] entityKey, byte entityKind)
+        {
             _entityKey = entityKey;
             _entityKind = entityKind;
         }
 
-        internal EntityId(RtpsByteBuffer bb) {
+        internal EntityId(RtpsByteBuffer bb)
+        {
             _entityKey = new byte[3];
             bb.read(_entityKey);
             _entityKind = bb.read_octet();
         }
 
-        public bool IsBuiltinEntity() {
+        public bool IsBuiltinEntity()
+        {
             return (_entityKind & 0xc0) == 0xc0; // @see 9.3.1.2
         }
 
-        public bool IsUserDefinedEntity() {
+        public bool IsUserDefinedEntity()
+        {
             return (_entityKind & 0xc0) == 0x00; // @see 9.3.1.2
         }
 
-        public bool IsVendorSpecifiEntity() {
+        public bool IsVendorSpecifiEntity()
+        {
             return (_entityKind & 0xc0) == 0x40; // @see 9.3.1.2
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write(_entityKey);
             bb.write_octet(_entityKind);
         }
 
-        public override bool Equals(object other) {
-            if (other != null && typeof(EntityId) == other.GetType()) {
-                var otherEntityId = (EntityId) other;
-                
+        public override bool Equals(object other)
+        {
+            if (other != null && typeof(EntityId) == other.GetType())
+            {
+                var otherEntityId = (EntityId)other;
+
                 return _entityKind == otherEntityId._entityKind &&
                        _entityKey.SequenceEqual(otherEntityId._entityKey);
             }
 
             return false;
         }
-        
-        public override int GetHashCode() {
+
+        public override int GetHashCode()
+        {
             byte[] bytes = new byte[4];
             _entityKey.CopyTo(bytes, 0);
             bytes[3] = _entityKind;
 
-            return bytes.GetByteArrayHashCode();
+            return bytes.HashCode();
         }
 
-        public override string ToString() {
-            return _entityKey.ToString(",") + ":0x" + _entityKind.ToString("X2"); 
+        public override string ToString()
+        {
+            return _entityKey.ToString(",") + ":0x" + _entityKind.ToString("X2");
         }
     }
 
-    public class SequenceNumberSet : Type {
+    public class SequenceNumberSet : Type
+    {
         private SequenceNumber bmbase;
         private uint[] bitmaps;
         private uint numBits;
 
         public long BitmapBase => bmbase.asLong();
 
-        public List<long> SequenceNumbers {
-            get {
+        public List<long> SequenceNumbers
+        {
+            get
+            {
                 List<long> snList = new List<long>();
 
                 long seqNum = bmbase.asLong();
                 int bitCount = 0;
 
-                for (int i = 0; i < bitmaps.Length; i++) {
+                for (int i = 0; i < bitmaps.Length; i++)
+                {
                     uint bitmap = bitmaps[i];
 
-                    for (int j = 0; j < 32 && bitCount < numBits; j++) {
-                        if ((bitmap & 0x80000000) == 0x80000000) { // Compare MSB to 0x80000000 or 0x0
+                    for (int j = 0; j < 32 && bitCount < numBits; j++)
+                    {
+                        if ((bitmap & 0x80000000) == 0x80000000)
+                        { // Compare MSB to 0x80000000 or 0x0
                             snList.Add(seqNum);
                         }
 
@@ -291,24 +345,28 @@ namespace rtps {
             }
         }
 
-        public SequenceNumberSet(long _base, uint numBits) {
+        public SequenceNumberSet(long _base, uint numBits)
+        {
             this.bmbase = new SequenceNumber(_base);
             this.numBits = numBits;
             this.bitmaps = new uint[(numBits + 31) / 32];
-        
-            for (int i = 0; i < bitmaps.Length; i++) {
+
+            for (int i = 0; i < bitmaps.Length; i++)
+            {
                 bitmaps[i] = 0xff;
             }
         }
 
 
-        public SequenceNumberSet(long bmBase, uint[] bitMaps) {
+        public SequenceNumberSet(long bmBase, uint[] bitMaps)
+        {
             bmbase = new SequenceNumber(bmBase);
             bitmaps = bitMaps;
-            numBits = (uint) (bitMaps.Length * 32);
+            numBits = (uint)(bitMaps.Length * 32);
         }
 
-        public SequenceNumberSet(RtpsByteBuffer bb) {
+        public SequenceNumberSet(RtpsByteBuffer bb)
+        {
             bmbase = new SequenceNumber(bb);
 
             numBits = bb.read_long();
@@ -317,80 +375,93 @@ namespace rtps {
             bb.read(bitmaps);
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bmbase.WriteTo(bb);
             bb.write_long(numBits);
             bb.write(bitmaps);
         }
     }
 
-    public class SequenceNumber : Type {
+    public class SequenceNumber : Type
+    {
         private readonly long sn;
 
-        public SequenceNumber(RtpsByteBuffer bb) {
+        public SequenceNumber(RtpsByteBuffer bb)
+        {
             uint high = bb.read_long();
             uint low = bb.read_long();
-            
+
             sn = high << 32 | low;
         }
 
-        public SequenceNumber(long sn) {
+        public SequenceNumber(long sn)
+        {
             this.sn = sn;
         }
 
-        public long asLong() {
+        public long asLong()
+        {
             return sn;
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
-            uint low = (uint) (sn & 0xffffffff);
-            uint high =  (uint) ((sn >> 32) & 0xffffffff);
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            uint low = (uint)(sn & 0xffffffff);
+            uint high = (uint)((sn >> 32) & 0xffffffff);
 
             bb.write_long(high);
             bb.write_long(low);
         }
     }
 
-    public class Time : Type {
+    public class Time : Type
+    {
         public static readonly Time TIME_ZERO = new Time(0, 0);
         public static readonly Time TIME_INVALID = new Time(0xffffffff, 0xffffffff);
         public static readonly Time TIME_INFINITE = new Time(0x7fffffff, 0xffffffff);
 
-        private static readonly DateTime Jan1st1970 = 
+        private static readonly DateTime Jan1st1970 =
             new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         private uint seconds;
         private uint fraction;
-        
-        public Time(RtpsByteBuffer bb) {
+
+        public Time(RtpsByteBuffer bb)
+        {
             seconds = bb.read_long() & 0x7fffffff; // long
             fraction = bb.read_long(); // ulong
         }
 
-        internal Time(uint sec, uint frac) {
+        internal Time(uint sec, uint frac)
+        {
             seconds = sec;
             fraction = frac;
         }
 
-        public Time() : this((long) (DateTime.UtcNow - Jan1st1970).TotalMilliseconds) {
+        public Time() : this((long)(DateTime.UtcNow - Jan1st1970).TotalMilliseconds)
+        {
         }
 
-        public Time(long systemCurrentMillis) {
-            seconds = (uint) (systemCurrentMillis / 1000);
-        
-            long scm = this.seconds * 1000; 
-        
-            fraction = (uint) (systemCurrentMillis - scm);
+        public Time(long systemCurrentMillis)
+        {
+            seconds = (uint)(systemCurrentMillis / 1000);
+
+            long scm = this.seconds * 1000;
+
+            fraction = (uint)(systemCurrentMillis - scm);
         }
 
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write_long(seconds);
             bb.write_long(fraction);
         }
     }
 
-    public class Locator : Type {
+    public class Locator : Type
+    {
         public static readonly uint LOCATOR_KIND_UDPv4 = 1;
         public static readonly uint LOCATOR_KIND_UDPv6 = 2;
 
@@ -398,7 +469,8 @@ namespace rtps {
         public byte[] Address { get; internal set; }
         public uint Port { get; internal set; }
 
-        public Locator(RtpsByteBuffer bb) {
+        public Locator(RtpsByteBuffer bb)
+        {
             Kind = bb.read_long();
             Port = bb.read_long();
             Address = new byte[16];
@@ -406,54 +478,84 @@ namespace rtps {
             bb.read(Address);
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write_long(Kind);
             bb.write_long(Port);
             bb.write(Address);
         }
     }
 
-    public class LocatorUDPv4_t : Type {
+    public class LocatorUDPv4_t : Type
+    {
         private uint address;
         private uint port;
 
-        public LocatorUDPv4_t(RtpsByteBuffer bb) {
+        public LocatorUDPv4_t(RtpsByteBuffer bb)
+        {
             address = bb.read_long();
             port = bb.read_long();
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.write_long(address);
             bb.write_long(port);
         }
     }
 
-    public class ParameterList : Type, IEnumerable<Parameter> {
+    public class Signature : Type
+    {
+        private byte[] bytes;
+        public byte[] Bytes => bytes;
+
+        internal Signature(RtpsByteBuffer bb)
+        {
+            bytes = new byte[15];
+            bb.read(bytes);
+        }
+
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            bb.write(bytes);
+        }
+    }
+
+
+
+    public class ParameterList : Type, IEnumerable<Parameter>
+    {
         private List<Parameter> _parameters = new List<Parameter>();
         internal int Count => _parameters.Count;
 
-        public ParameterList() {
+        public ParameterList()
+        {
         }
 
-        public ParameterList(RtpsByteBuffer bb) {
-            while (true) {
+        public ParameterList(RtpsByteBuffer bb)
+        {
+            while (true)
+            {
                 long pos1 = bb.Position;
 
                 Parameter param = ParameterFactory.ReadParameter(bb);
                 _parameters.Add(param);
                 long length = bb.Position - pos1;
 
-                if (param.Id == ParameterId.PID_SENTINEL) {
+                if (param.Id == ParameterId.PID_SENTINEL)
+                {
                     break;
                 }
             }
         }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
             bb.align(4); // @see 9.4.2.11
 
             _parameters.Add(new Sentinel()); // Sentinel must be the last Parameter
-            foreach (Parameter param in _parameters) {
+            foreach (Parameter param in _parameters)
+            {
                 bb.write_short((ushort)param.Id);
                 bb.write_short(0); // length will be calculated
 
@@ -471,9 +573,12 @@ namespace rtps {
             }
         }
 
-        internal Parameter getParameter(ParameterId id) {
-            foreach (var p in _parameters) {
-                if (p.Id.Equals(id)) {
+        internal Parameter getParameter(ParameterId id)
+        {
+            foreach (var p in _parameters)
+            {
+                if (p.Id.Equals(id))
+                {
                     return p;
                 }
             }
@@ -481,79 +586,16 @@ namespace rtps {
             return null;
         }
 
-        
-        public IEnumerator<Parameter> GetEnumerator() {
+
+        public IEnumerator<Parameter> GetEnumerator()
+        {
             return _parameters.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() {
+        IEnumerator IEnumerable.GetEnumerator()
+        {
             return GetEnumerator();
         }
     }
 
-    public class DataEncapsulation {
-        public byte[] SerializedPayload { get; internal set; }
-
-        internal bool ContainsData() {
-            throw new NotImplementedException();
-        }
-
-        internal static DataEncapsulation CreateInstance(byte[] serializedPayload) {
-            RtpsByteBuffer bb = new RtpsByteBuffer(serializedPayload);
-            byte[] encapsulationHeader = new byte[2];
-            bb.read(encapsulationHeader);
-
-            short eh = (short) (((short) encapsulationHeader[0] << 8) | (encapsulationHeader[1] & 0xff));
-
-            switch (eh) {
-                case 0:
-                case 1:
-                    bool littleEndian = (eh & 0x1) == 0x1;
-                    bb.IsLittleEndian = littleEndian;
-                    
-                    return new CDREncapsulation(bb);
-                case 2:
-                case 3:
-                    littleEndian = (eh & 0x1) == 0x1;
-                    bb.IsLittleEndian = littleEndian;
-                    
-                    return new ParameterListEncapsulation(bb);
-            }
-
-            // TODO: handle this more gracefully
-            return null;
-        }
-    }
-
-    internal class ParameterListEncapsulation : DataEncapsulation {
-        private ushort _options;
-        private ParameterList _parameters;
-
-        public ParameterListEncapsulation(RtpsByteBuffer bb) {
-            _parameters = new ParameterList(bb);
-            _options = bb.read_short(); // Not used
-        }
-    }
-
-    internal class CDREncapsulation : DataEncapsulation {
-        private readonly RtpsByteBuffer _bb;
-        private ushort _options;
-
-        public CDREncapsulation(RtpsByteBuffer bb) {
-            _bb = bb;
-            _options = bb.read_short(); // Not used
-        }
-    }
-
-
-    public class Signature {
-            private byte[] bytes;
-
-            public byte[] Bytes => bytes;
-
-            internal Signature(RtpsByteBuffer bb) {
-                bytes = new byte[15];
-                bb.read(bytes);
-            }
-        }
-    }
+}

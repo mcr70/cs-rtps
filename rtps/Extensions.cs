@@ -17,5 +17,19 @@ namespace rtps {
             sb.Append("]");
             return sb.ToString();
         }
+
+        public static int HashCode(this byte[] array)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (var value in array)
+                {
+                    hash = hash * 23 + value.GetHashCode();
+                }
+
+                return hash;
+            }
+        }
     }
 }

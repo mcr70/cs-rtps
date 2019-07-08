@@ -68,6 +68,7 @@
     <Compile Include="message\Types.cs" />
     <Compile Include="message\UnknownSubMessage.cs" />
     <Compile Include="transport\Transport.cs" />
+    <Compile Include="message\Encapsulation.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="tests\" />

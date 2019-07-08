@@ -1,7 +1,12 @@
 ﻿using System;
-using System.Dynamic;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace rtps.message.builtin {
+    /// <summary>
+    /// A Base class for all the builtin parameters
+    /// </summary>
     public abstract class Parameter {
         public ParameterId Id { get; }
 
@@ -9,62 +14,123 @@ namespace rtps.message.builtin {
             Id = id;
         }
 
+        /// <summary>
+        /// Reads the Parameter from given RtpsByteBuffer. The length of the Parameter is given as
+        /// an argument to this method. Some Parameters might make use of the length parameter, other might not.
+        /// For example, QosUserData parameter provides an arbitrary long length, which is needed byt the
+        /// implementation to read correct amount of octets from the stream.
+        /// On the other hand, when reading ParticipantGuid the length can be ignored, as it is already known
+        /// by the implementation (is constant).
+        /// </summary>
+        /// <param name="bb">RtpsByteBuffer</param>
+        /// <param name="length">Length of the parameter extracted from stream</param>
+        public abstract void ReadFrom(RtpsByteBuffer bb, ushort length);
+
+        /// <summary>
+        /// Writes the Parameter into given RtpsByteBuffer. Writing should not write the length of
+        /// Parameter into stream. Is is calculated and stored into stream into correct position.
+        /// </summary>
+        /// <param name="bb">RtpsByteBuffer</param>
         public abstract void WriteTo(RtpsByteBuffer bb);
     }
 
-    public class Sentinel : Parameter {
-        public Sentinel() : base(ParameterId.PID_SENTINEL) {
+    public class ParameterFactory
+    {
+        private static readonly log4net.ILog Log =
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        private static Dictionary<ushort, System.Type> parameterTypes = new Dictionary<ushort, System.Type>();
+
+        /// <summary>
+        /// Static Constructor that loads all the Parameters from _this_ Assebly
+        /// </summary>
+        static ParameterFactory()
+        {
+            ScanAssemblies(new Assembly[]{ Assembly.GetAssembly(typeof(Parameter)) });
         }
 
+        /// <summary>
+        /// Scans all the Parameters defined in all the assemblies given. By default, only internal
+        /// Parameters are read. This method provides a way to add other Parameters from other assemblies
+        /// into csrtps
+        /// </summary>
+        /// <param name="assemblies"></param>
+        public static void ScanAssemblies(Assembly[] assemblies)
+        {
+            foreach (System.Type type in assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(Parameter))))
+            {
+                Parameter p = (Parameter)Activator.CreateInstance(type, true);
+                if (!parameterTypes.ContainsKey((ushort)p.Id))
+                {
+                    parameterTypes[(ushort)p.Id] = type;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Scans all the Parameters defined in all the assemblies defined in this AppDomain.
+        /// </summary>
+        public static void ScanAllAssemblies()
+        {
+            ScanAssemblies(AppDomain.CurrentDomain.GetAssemblies());
+        }
+
+        public override string ToString()
+        {
+            return "Known parameters: " + string.Join(",", parameterTypes.Keys);
+        }
+
+        static internal Parameter ReadParameter(RtpsByteBuffer bb)
+        {
+            bb.align(4);
+
+            ushort paramId = bb.read_short();
+            ushort paramLength = bb.read_short();
+
+            Parameter param;
+            if (parameterTypes.ContainsKey(paramId))
+            {
+                param = (Parameter)Activator.CreateInstance(parameterTypes[paramId]);
+            }
+            else
+            {
+                param = new UnknownParameter(paramId, paramLength);
+            }
+
+            param.ReadFrom(bb, paramLength);
+            return param;
+        }
+    }
+
+
+    public class Sentinel : Parameter {
+        internal Sentinel() : base(ParameterId.PID_SENTINEL) {
+        }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            // No Content
+        }
         public override void WriteTo(RtpsByteBuffer bb) {
             // No Content
         }
     }
 
-    public class ProtocolVersion : Parameter {
-        private readonly byte[] _version;
-        
-        public byte Major => _version[0];
-        public byte Minor => _version[1];
-        
-        public ProtocolVersion(byte major, byte minor) : base(ParameterId.PID_PROTOCOL_VERSION) {
-            _version = new byte[] { major, minor };
-        }
-        
-        internal ProtocolVersion(RtpsByteBuffer bb) : base(ParameterId.PID_PROTOCOL_VERSION) {
-            _version = new byte[2];
-            bb.read(_version);
-        }
 
-        public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write(_version);
-        }
-    }
     
-    public class VendorId : Parameter {
-        public static readonly VendorId JRTPS = new VendorId(new byte[] {(byte) 0x01, (byte) 0x21});
-
-        private readonly byte[] _bytes;
-
-        private VendorId(byte[] bytes) : base(ParameterId.PID_VENDORID) {
-            _bytes = bytes;
-        }
-
-        internal VendorId(RtpsByteBuffer bb) : base(ParameterId.PID_VENDORID) {
-            _bytes = new byte[2];
-            bb.read(_bytes);
-        }
-
-        public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write(_bytes);
-        }
-    }
-
-
     public class ParticipantGuid : Parameter {
         public Guid Guid { get; internal set; }
 
-        internal ParticipantGuid(RtpsByteBuffer bb) : base(ParameterId.PID_PARTICIPANT_GUID) {
+        public ParticipantGuid(Guid guid) : base(ParameterId.PID_PARTICIPANT_GUID) {
+            this.Guid = guid;
+        }
+
+        internal ParticipantGuid() : base(ParameterId.PID_PARTICIPANT_GUID) { }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
             Guid = new Guid(bb);
         }
 
@@ -77,7 +143,13 @@ namespace rtps.message.builtin {
         Write, Dispose, Unregister
     }
     public class StatusInfo : Parameter {
-        private readonly byte[] _flags = new byte[4];
+        private byte[] _flags = new byte[4];
+
+        public bool IsDispose => (_flags[3] & 0x1) != 0;
+        public bool IsUnregister => (_flags[3] & 0x2) != 0;
+        public bool IsWrite => !(IsDispose && IsUnregister);
+
+        internal StatusInfo() : base(ParameterId.PID_STATUS_INFO) {}
 
         public StatusInfo(params ChangeKind[] kinds) : base(ParameterId.PID_STATUS_INFO) {
             foreach (var k in kinds) {
@@ -93,8 +165,10 @@ namespace rtps.message.builtin {
                 }
             }
         }
-        
-        public StatusInfo(RtpsByteBuffer bb) : base(ParameterId.PID_STATUS_INFO) {
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            _flags = new byte[length];
             bb.read(_flags);
         }
 
@@ -107,10 +181,17 @@ namespace rtps.message.builtin {
         private uint[] bitmaps;
         private Signature[] signatures;
 
-        public ContentFilterInfo() : base(ParameterId.PID_CONTENT_FILTER_INFO) {
+        internal ContentFilterInfo() : base(ParameterId.PID_CONTENT_FILTER_INFO) {
         }
 
-        public ContentFilterInfo(RtpsByteBuffer bb) : base(ParameterId.PID_CONTENT_FILTER_INFO) {
+        public ContentFilterInfo(uint[] bitmaps, Signature[] signatures) : base(ParameterId.PID_CONTENT_FILTER_INFO)
+        {
+            this.bitmaps = bitmaps;
+            this.signatures = signatures;
+        }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
             bitmaps = new uint[bb.read_long()];
             for (int i = 0; i < bitmaps.Length; i++) {
                 bitmaps[i] = bb.read_long();
@@ -131,48 +212,39 @@ namespace rtps.message.builtin {
 
             bb.write_long((uint) signatures.Length);
             foreach (Signature t in signatures) {
-                bb.write(t.Bytes);
+                t.WriteTo(bb);
             }
         }
     }
 
-    public class UnknownParameter : Parameter {
-        private readonly ParameterId _id;
-        private readonly byte[] _bytes;
-
-        internal UnknownParameter(ParameterId id, byte[] bytes) : base(ParameterId.PID_UNKNOWN_PARAMETER) {
-            _id = id;
-            _bytes = bytes;
-        }
-
-        public override void WriteTo(RtpsByteBuffer bb) {
-            bb.write(_bytes);
-        }
-    }
 
     public class BuiltinTopicKey : Parameter {
         public Guid Guid { get; internal set; }
 
-        internal BuiltinTopicKey(RtpsByteBuffer bb) : base(ParameterId.PID_BUILTIN_TOPIC_KEY) {
-            Guid = new Guid(bb);
-        }
-
+        internal BuiltinTopicKey() : base(ParameterId.PID_BUILTIN_TOPIC_KEY){ }
         public BuiltinTopicKey(Guid guid) : base(ParameterId.PID_BUILTIN_TOPIC_KEY) {
             Guid = guid;
         }
 
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            Guid = new Guid(bb);
+        }
         public override void WriteTo(RtpsByteBuffer bb) {
             Guid.WriteTo(bb);
         }
     }
 
-    public class LocatorParam : Parameter {
+    public abstract class LocatorParam : Parameter {
         public Locator Locator { get; internal set; }
 
-        internal LocatorParam(RtpsByteBuffer bb, ParameterId pid) : base(pid) {
-            Locator = new Locator(bb);
+        protected LocatorParam(ParameterId pid) : base(pid) {
         }
 
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            Locator = new Locator(bb);
+        }
         public override void WriteTo(RtpsByteBuffer bb) {
             Locator.WriteTo(bb);
         }
@@ -181,7 +253,12 @@ namespace rtps.message.builtin {
     public class EndpointSet : Parameter {
         public uint endpoints { get; internal set; }
 
-        internal EndpointSet(RtpsByteBuffer bb, ParameterId pid) : base(pid) {
+        // TODO: PID_BUILTIN_ENDPOINT_SET  _and_  PID_PARTICIPANT_BUILTIN_ENDPOINTS
+
+        internal EndpointSet() : base(ParameterId.PID_BUILTIN_ENDPOINT_SET) {}
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
             endpoints = bb.read_long();
         }
 
@@ -193,8 +270,14 @@ namespace rtps.message.builtin {
     public class QosUserData : Parameter {
         public byte[] user_data { get; internal set; }
 
-        internal QosUserData(RtpsByteBuffer bb, uint lenght) : base(ParameterId.PID_USER_DATA) {
-            user_data = new byte[lenght];
+        internal QosUserData() : base(ParameterId.PID_USER_DATA) { }
+        public QosUserData(byte[] bytes) : base(ParameterId.PID_USER_DATA)
+        {
+            user_data = bytes;
+        }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length) { 
+            user_data = new byte[length];
             bb.read(user_data);
         }
 
@@ -206,7 +289,12 @@ namespace rtps.message.builtin {
     public class ParticipantLeaseDuration : Parameter {
         public Duration Duration { get; internal set; }
 
-        internal ParticipantLeaseDuration(RtpsByteBuffer bb) : base(ParameterId.PID_USER_DATA) {
+        internal ParticipantLeaseDuration() : base(ParameterId.PID_PARTICIPANT_LEASE_DURATION) { }
+        public ParticipantLeaseDuration(Duration d) : base(ParameterId.PID_PARTICIPANT_LEASE_DURATION) {
+            Duration = d;
+        }
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
             Duration = new Duration(bb);
         }
 
@@ -214,131 +302,40 @@ namespace rtps.message.builtin {
             Duration.WriteTo(bb);
         }
     }
-    
-    // ---------------------------------------------------------------------------
 
-    public class ParameterFactory {
-        private static readonly log4net.ILog Log = 
-            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
-        internal static Parameter ReadParameter(RtpsByteBuffer bb) {
-            bb.align(4);
+    /// Unknown parameter is not used by csrtps. It is only created when 3rd party RTPS participant
+    /// sends a parameter that is not recognized by csrtps.
+    /// It is passed to upper layer if implementing class wishes to make use of it.
+    public class UnknownParameter : Parameter
+    {
+        private readonly ushort _length;
+        public ushort UnknownId { get; }
+        public byte[] Bytes { get; internal set; }
 
-            int paramId = bb.read_short();
-            ushort paramLength = 0;
+        public UnknownParameter() : base(ParameterId.PID_UNKNOWN_PARAMETER) {  } // Constructor is NOT USED byt csrtps
+        internal UnknownParameter(ushort id, ushort length) : base(ParameterId.PID_UNKNOWN_PARAMETER)
+        {
+            UnknownId = id;
+            _length = length;
+        }
 
-            if (paramId != 0x0001 && paramId != 0x0000) { // SENTINEL & PAD
-                paramLength = bb.read_short();
-            }
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            Bytes = new byte[_length];
+            bb.read(Bytes);
+        }
 
-            Parameter param = null;
-            switch ((ParameterId) paramId) {
-                case ParameterId.PID_BUILTIN_TOPIC_KEY:
-                    param = new BuiltinTopicKey(bb);
-                    break;
-                case ParameterId.PID_UNICAST_LOCATOR:
-                case ParameterId.PID_MULTICAST_LOCATOR:
-                case ParameterId.PID_DEFAULT_UNICAST_LOCATOR:
-                case ParameterId.PID_DEFAULT_MULTICAST_LOCATOR:
-                case ParameterId.PID_METATRAFFIC_UNICAST_LOCATOR:
-                case ParameterId.PID_METATRAFFIC_MULTICAST_LOCATOR:
-                    return new LocatorParam(bb, (ParameterId) paramId);
-                case ParameterId.PID_SENTINEL:
-                    return new Sentinel();
-                case ParameterId.PID_VENDORID:
-                    return new VendorId(bb);    
-                case ParameterId.PID_PROTOCOL_VERSION:
-                    return new ProtocolVersion(bb);
-                case ParameterId.PID_PARTICIPANT_GUID:
-                    return new ParticipantGuid(bb);
-                case ParameterId.PID_PARTICIPANT_BUILTIN_ENDPOINTS:
-                case ParameterId.PID_BUILTIN_ENDPOINT_SET:
-                    return new EndpointSet(bb, (ParameterId)paramId);
-                case ParameterId.PID_USER_DATA:
-                    return new QosUserData(bb, paramLength);                    
-                case ParameterId.PID_PARTICIPANT_LEASE_DURATION:
-                    return new ParticipantLeaseDuration(bb);
-                case ParameterId.PID_PAD:
-                case ParameterId.PID_PERSISTENCE:
-                case ParameterId.PID_TIME_BASED_FILTER:
-                case ParameterId.PID_TOPIC_NAME:
-                case ParameterId.PID_OWNERSHIP_STRENGTH:
-                case ParameterId.PID_TYPE_NAME:
-                case ParameterId.PID_TYPE_CHECKSUM:
-                case ParameterId.PID_TYPE2_NAME:
-                case ParameterId.PID_TYPE2_CHECKSUM:
-                case ParameterId.PID_EXPECTS_ACK:
-                case ParameterId.PID_METATRAFFIC_MULTICAST_IPADDRESS:
-                case ParameterId.PID_DEFAULT_UNICAST_IPADDRESS:
-                case ParameterId.PID_METATRAFFIC_UNICAST_PORT:
-                case ParameterId.PID_DEFAULT_UNICAST_PORT:
-                case ParameterId.PID_MULTICAST_IPADDRESS:
-                case ParameterId.PID_MANAGER_KEY:
-                case ParameterId.PID_SEND_QUEUE_SIZE:
-                case ParameterId.PID_RELIABILITY_ENABLED:
-                case ParameterId.PID_VARGAPPS_SEQUENCE_NUMBER_LAST:
-                case ParameterId.PID_RECV_QUEUE_SIZE:
-                case ParameterId.PID_RELIABILITY_OFFERED:
-                case ParameterId.PID_RELIABILITY:
-                case ParameterId.PID_LIVELINESS:
-                case ParameterId.PID_DURABILITY:
-                case ParameterId.PID_DURABILITY_SERVICE:
-                case ParameterId.PID_OWNERSHIP:
-                case ParameterId.PID_DEADLINE:
-                case ParameterId.PID_PRESENTATION:
-                case ParameterId.PID_DESTINATION_ORDER:
-                case ParameterId.PID_LATENCY_BUDGET:
-                case ParameterId.PID_PARTITION:
-                case ParameterId.PID_LIFESPAN:
-                case ParameterId.PID_GROUP_DATA:
-                case ParameterId.PID_TOPIC_DATA:
-                case ParameterId.PID_PARTICIPANT_MANUAL_LIVELINESS_COUNT:
-                case ParameterId.PID_CONTENT_FILTER_PROPERTY:
-                case ParameterId.PID_HISTORY:
-                case ParameterId.PID_RESOURCE_LIMITS:
-                case ParameterId.PID_EXPECTS_INLINE_QOS:
-                case ParameterId.PID_METATRAFFIC_UNICAST_IPADDRESS:
-                case ParameterId.PID_METATRAFFIC_MULTICAST_PORT:
-                case ParameterId.PID_TRANSPORT_PRIORITY:
-                case ParameterId.PID_PARTICIPANT_ENTITYID:
-                case ParameterId.PID_GROUP_GUID:
-                case ParameterId.PID_GROUP_ENTITYID:
-                case ParameterId.PID_CONTENT_FILTER_INFO:
-                case ParameterId.PID_COHERENT_SET:
-                case ParameterId.PID_DIRECTED_WRITE:
-                case ParameterId.PID_PROPERTY_LIST:
-                case ParameterId.PID_TYPE_MAX_SIZE_SERIALIZED:
-                case ParameterId.PID_ORIGINAL_WRITER_INFO:
-                case ParameterId.PID_ENTITY_NAME:
-                case ParameterId.PID_KEY_HASH:
-                case ParameterId.PID_STATUS_INFO:
-                case ParameterId.PID_TYPE_OBJECT:
-                case ParameterId.PID_DATA_REPRESENTATION:
-                case ParameterId.PID_TYPE_CONSISTENCY_ENFORCEMENT:
-                case ParameterId.PID_EQUIVALENT_TYPE_NAME:
-                case ParameterId.PID_BASE_TYPE_NAME:
-                case ParameterId.PID_SERVICE_INSTANCE_NAME:
-                case ParameterId.PID_RELATED_ENTITY_GUID:
-                case ParameterId.PID_TOPIC_ALIASES:
-                case ParameterId.PID_IDENTITY_TOKEN:
-                case ParameterId.PID_PERMISSIONS_TOKEN:
-                case ParameterId.PID_DATA_TAGS:
-                case ParameterId.PID_UNKNOWN_PARAMETER:
-                case ParameterId.PID_X509CERT:
-                default:
-                    Log.DebugFormat("Reading unknown parameter 0x{0}", paramId.ToString("X4"));
-                    var bytes = new byte[paramLength];
-                    bb.read(bytes);
-                    param = new UnknownParameter((ParameterId) paramId, bytes);
-                    break;
-            }
-
-            return param;
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            bb.write(Bytes);
         }
     }
 
 
-    public enum ParameterId {
+    // ---------------------------------------------------------------------------
+
+
+    public enum ParameterId : ushort {
         PID_PAD = 0x0000,
         PID_SENTINEL = 0x0001,
         PID_PARTICIPANT_LEASE_DURATION = 0x0002,
