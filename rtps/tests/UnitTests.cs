@@ -32,21 +32,33 @@ namespace rtps.tests
             Assert.AreEqual(0x01020304, bb.read_long());
         }
 
-        
-        [TestCase((ushort)0x1234, ExpectedResult = 0x3412)] // test swapping of positive number
-        [TestCase((ushort)0xFEDC, ExpectedResult = 0xDCFE)] // test swapping of negative number
-        public ushort TestSwapBytes16(ushort i)
+
+        [TestCase((ushort)0x1234, true, ExpectedResult = 0x1234)] // test positive little endian
+        [TestCase((ushort)0xFEDC, true, ExpectedResult = 0xFEDC)] // test negative little endian
+        [TestCase((ushort)0x1234, false, ExpectedResult = 0x1234)] // test positive big endian
+        [TestCase((ushort)0xFEDC, false, ExpectedResult = 0xFEDC)] // test negative big endian
+        public ushort TestEndianness16(ushort i, bool littleEndian)
         {
             var bb = new RtpsByteBuffer();
-            return bb.SwapBytes(i);
+            bb.IsLittleEndian = littleEndian;
+            bb.write_short(i);
+            bb.Position = 0;
+
+            return bb.read_short();
         }
 
-        [TestCase((uint)0x0a0b0c0d, ExpectedResult = 0x0d0c0b0a)] // test swapping of positive number
-        [TestCase((uint)0xa0b0c0d0, ExpectedResult = 0xd0c0b0a0)] // test swapping of negative number
-        public uint TestSwapBytes32(uint i)
+        [TestCase((uint)0x0a0b0c0d, true, ExpectedResult = 0x0a0b0c0d)] // test positive little endian
+        [TestCase((uint)0xa0b0c0d0, true, ExpectedResult = 0xa0b0c0d0)] // test negative little endian
+        [TestCase((uint)0x0a0b0c0d, false, ExpectedResult = 0x0a0b0c0d)] // test positive big endian
+        [TestCase((uint)0xa0b0c0d0, false, ExpectedResult = 0xa0b0c0d0)] // test negative big endian
+        public uint TestEndianness32(uint i, bool littleEndian)
         {
             var bb = new RtpsByteBuffer();
-            return bb.SwapBytes(i);
+            bb.IsLittleEndian = littleEndian;
+            bb.write_long(i);
+            bb.Position = 0;
+            return bb.read_long();
         }
+
     }
 }

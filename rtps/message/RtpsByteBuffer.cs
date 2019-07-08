@@ -81,6 +81,7 @@ namespace rtps.message {
 
         public void write_short(UInt16 i) {
             align(2);
+            i = IsLittleEndian ? i : SwapBytes(i);
             _writer.Write(i);
         }
 
@@ -93,6 +94,7 @@ namespace rtps.message {
 
         public void write_long(UInt32 i) {
             align(4);
+            i = IsLittleEndian ? i : SwapBytes(i);
             _writer.Write(i);
         }
 
