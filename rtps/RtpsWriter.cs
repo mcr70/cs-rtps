@@ -8,10 +8,6 @@ namespace rtps {
         public RtpsWriter(Guid guid, bool reliable = false) : base(guid, reliable) {
         }
 
-        protected override ReaderProxy CreateProxy(SubscriptionData dd) {
-            return new ReaderProxy(dd);
-        }
-
         public void OnAckNack(AckNack ackNack) {
             throw new System.NotImplementedException();
         }

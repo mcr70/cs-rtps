@@ -59,6 +59,9 @@ namespace rtps.transport {
     // ---------------------------------------------------------------------------
 
     public class UdpProvider : TransportProvider {
+        private static readonly log4net.ILog Log =
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         Dictionary<Locator, UdpTransmitter> _transmitters = new Dictionary<Locator, UdpTransmitter>();
         Dictionary<Uri, UdpReceiver> _receivers = new Dictionary<Uri, UdpReceiver>();
         
@@ -71,6 +74,7 @@ namespace rtps.transport {
         }
 
         public override ITransmitter GetTransmitter(Locator loc) {
+            Log.DebugFormat("GetTransmitter({0})", loc);
             UdpTransmitter tr;
             if (!_transmitters.TryGetValue(loc, out tr)) {
                 tr = new UdpTransmitter(loc);
@@ -81,9 +85,10 @@ namespace rtps.transport {
         }
 
         public override IReceiver GetReceiver(Uri uri, BlockingCollection<byte[]> queue) {
+            Log.DebugFormat("GetReceiver({0}, ...)", uri);
             UdpReceiver r;
             if (!_receivers.TryGetValue(uri, out r)) {
-                r = new UdpReceiver(uri.Port, queue);
+                r = new UdpReceiver(uri, queue);
                 _receivers[uri] = r;
             }
 
@@ -93,19 +98,44 @@ namespace rtps.transport {
     
     
     public class UdpReceiver : IReceiver {
+        private static readonly log4net.ILog Log =
+            log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly BlockingCollection<byte[]> _queue;
         private readonly UdpClient _client;
+        private IPEndPoint _endpoint;
 
-        internal UdpReceiver(int port, BlockingCollection<byte[]> queue) {
+
+        internal UdpReceiver(Uri uri, BlockingCollection<byte[]> queue) {
             _queue = queue;
-            _client = new UdpClient(port);
+            if (!IPAddress.TryParse(uri.Host, out IPAddress addr))
+            {
+                var addresses = Dns.GetHostAddresses(uri.Host);
+                if (addresses.Length > 0)
+                {
+                    addr = addresses[0];
+                }
+            }
+            
+            _client = new UdpClient();
+            _endpoint = new IPEndPoint(IPAddress.Any, uri.Port);
+            _client.Client.Bind(_endpoint);
+
+            byte[] bytes = addr.GetAddressBytes();
+            bool isMulticast = (bytes[0] >> 4) == 14;
+            if (isMulticast)
+            {
+                Log.DebugFormat("Joining multicast group {0}", addr);
+                _client.JoinMulticastGroup(addr);
+            }
         }
 
 
         public void Receive() {
             IPEndPoint remoteEndpoint = new IPEndPoint(IPAddress.Any, 0);
             while (true) {
-                byte[] bytes = _client.Receive(ref remoteEndpoint);
+                Log.Debug("Receiving from " + _client);
+                byte[] bytes = _client.Receive(ref _endpoint);
                 _queue.Add(bytes);
             }
         }

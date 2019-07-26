@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using rtps;
 using rtps.message;
 
 namespace rtps {
@@ -24,6 +25,7 @@ namespace rtps {
         public void Run() {
             while (_running) {
                 foreach (var bytes in _queue.GetConsumingEnumerable()) {
+                    Log.DebugFormat("Received {0} octets", bytes.Length);
                     try {
                         Message m = new Message(new RtpsByteBuffer(bytes));
                         handleMessage(m);

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using rtps.message;
 using rtps.message.builtin;
@@ -483,6 +484,11 @@ namespace rtps
             bb.write_long(Kind);
             bb.write_long(Port);
             bb.write(Address);
+        }
+
+        public override string ToString()
+        {
+            return "Kind(" + Kind + "):[" + Address.ToString(",") + "]," + Port;
         }
     }
 

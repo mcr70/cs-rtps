@@ -69,7 +69,7 @@ namespace udds {
             var writer = new DataWriter<T>(this, topicName, rtpsWriter);
             _dataWriters[eId] = writer;
             
-            Log.DebugFormat("Created DataWriter for '{0}': {1}", topicName, eId);
+            Log.InfoFormat("Created DataWriter for '{0}': {1}", topicName, eId);
 
             if (!eId.IsBuiltinEntity()) {
                 writePublicationData(writer); // Publish our new writer
@@ -119,7 +119,7 @@ namespace udds {
             var reader = new DataReader<T>(this, topicName, rtpsReader);
             _dataReaders[eId] = reader;
             
-            Log.DebugFormat("Created DataReader for '{0}': {1}", topicName, eId);
+            Log.InfoFormat("Created DataReader for '{0}': {1}", topicName, eId);
             if (!eId.IsBuiltinEntity()) {
                 writeSubscriptionData(reader);
             }
@@ -130,10 +130,11 @@ namespace udds {
 
         private void createBuiltinEntities() {
             // Create SPDP Entities
-            CreateDataReader<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
-            CreateDataWriter<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
-            // TODO: Add matched reader to SPDP Writer: GuidPrefix.UNKNOWN
-            
+            var dr = CreateDataReader<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
+            dr._reader.MatchEndpoint(new PublicationData(ParticipantData.BUILTIN_TOPIC_NAME, typeof(ParticipantData), Guid.UNKNOWN));
+            var dw = CreateDataWriter<ParticipantData>(ParticipantData.BUILTIN_TOPIC_NAME);
+            dw._writer.MatchEndpoint(new SubscriptionData(ParticipantData.BUILTIN_TOPIC_NAME, typeof(ParticipantData), Guid.UNKNOWN));
+
             // Create SEDP Entities
             CreateDataReader<TopicData>(TopicData.BUILTIN_TOPIC_NAME);
             CreateDataWriter<TopicData>(TopicData.BUILTIN_TOPIC_NAME);

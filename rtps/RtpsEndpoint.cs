@@ -25,6 +25,8 @@ namespace rtps {
         }
         
         public void MatchEndpoint(TProxyData builtinData) {
+            Log.DebugFormat("MatchEndpoint({0} -> {0})", Guid, builtinData.BuiltinTopicKey);
+
             if (RemoteProxies.ContainsKey(builtinData.BuiltinTopicKey)) {
                 RemoteProxies[builtinData.BuiltinTopicKey].DiscoveredData = builtinData;
             }
@@ -43,7 +45,8 @@ namespace rtps {
             RemoteProxies.Remove(pd.BuiltinTopicKey);
         }
 
-        protected abstract TProxyType CreateProxy(TProxyData dd);
+        //protected abstract TProxyType CreateProxy(TProxyData dd);
+
 
         protected void SendMessage(Message msg, TProxyType proxy) {
             Locator loc = proxy.GetLocator();
@@ -56,6 +59,15 @@ namespace rtps {
                 Log.WarnFormat("Unable to send message, no suitable Locator for proxy '{0}'", proxy.Guid);               
             }
         }
-    }
 
+
+        protected TProxyType CreateProxy(TProxyData pd)
+        {
+            TProxyType pt = (TProxyType)System.Activator.CreateInstance(typeof(TProxyType), pd);
+            RemoteProxies[pd.BuiltinTopicKey] = pt;
+
+            return pt;
+        }
+
+    }
 }

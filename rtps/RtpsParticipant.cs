@@ -18,19 +18,19 @@ namespace rtps {
             Guid = guid;
         }
 
-        public RtpsReader CreateReader(EntityId eid, IReaderCache rCache) {
-            Guid rGuid = new Guid(Guid.Prefix, eid);
+        public RtpsReader CreateReader(EntityId eId, IReaderCache rCache) {
+            Guid rGuid = new Guid(Guid.Prefix, eId);
             RtpsReader reader = new RtpsReader(rGuid, rCache);
-            _readers[eid] = reader;
-            
+            _readers[eId] = reader;
+
             return reader;
         }
 
-        public RtpsWriter CreateWriter(EntityId eid, IWriterCache rCache) {
-            Guid wGuid = new Guid(Guid.Prefix, eid);
+        public RtpsWriter CreateWriter(EntityId eId, IWriterCache rCache) {
+            Guid wGuid = new Guid(Guid.Prefix, eId);
             RtpsWriter writer = new RtpsWriter(wGuid);
-            _writers[eid] = writer;
-            
+            _writers[eId] = writer;
+
             return writer;
         }
 
@@ -46,7 +46,8 @@ namespace rtps {
             Log.Debug("Starting Participant " + Guid.Prefix);
             foreach (var uri in Configuration.GetDiscoveryListenerUris()) {
                 BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
-            
+
+                // Receiver is an internal receiver using queue for incoming messages
                 RtpsMessageReceiver receiver = new RtpsMessageReceiver(this, queue);
                 Task.Run(() => receiver.Run());
 
@@ -61,9 +62,16 @@ namespace rtps {
                 return;
             }
 
-            Log.DebugFormat("Starting Receiver for {0}", u);     
-            IReceiver rec = tp.GetReceiver(u, queue);
-            Task.Run(() => rec.Receive());
+            Log.DebugFormat("Starting Receiver for {0}", u);
+            try
+            {
+                IReceiver rec = tp.GetReceiver(u, queue);
+                Task.Run(() => rec.Receive());
+            }
+            catch(Exception e)
+            {
+                Log.Error("Failed to start receiver for " + u, e);
+            }
         }
     }
 }

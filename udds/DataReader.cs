@@ -3,7 +3,7 @@ using rtps;
 
 namespace udds {
     public class DataReader<T> : Entity {
-        private readonly RtpsReader _reader;
+        internal readonly RtpsReader _reader;
         internal List<IDataListener<T>> dataListeners = new List<IDataListener<T>>();
 
         internal DataReader() : base(null, null, null) {

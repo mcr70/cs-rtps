@@ -4,9 +4,16 @@ using System.Linq;
 namespace rtps.message.builtin {
     public class ParticipantData : DiscoveredData {
         public static readonly string BUILTIN_TOPIC_NAME = "DCPSParticipants";
+
         private readonly List<Locator> _discoveryLocators;
         private readonly List<Locator> _userdataLocators;
 
+        internal ParticipantData(Guid guid, List<Locator> discoveryLocators, List<Locator> userdataLocators)
+            : base(BUILTIN_TOPIC_NAME, "ParticipantData", guid) {
+
+            this._discoveryLocators = discoveryLocators;
+            this._userdataLocators = userdataLocators;
+        }
 
         public ParticipantData(ParameterList parameterList) : base(parameterList) {
             _discoveryLocators = new List<Locator>();

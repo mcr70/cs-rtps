@@ -18,16 +18,20 @@ namespace rtps {
         
         public void OnGap(GuidPrefix senderPrefix, Gap gap) {
             Guid remoteGuid = new Guid(senderPrefix, gap.WriterId);
-            WriterProxy wp;
-            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
+            
+            if (RemoteProxies.TryGetValue(remoteGuid, out WriterProxy wp)) {
                 wp.ApplyGap(gap);
+            }
+            else
+            {
+                Log.DebugFormat("Could not find a remote proxy for " + remoteGuid);
             }
         }
 
         public void OnHeartbeat(GuidPrefix senderPrefix, Heartbeat hb) {
             Guid remoteGuid = new Guid(senderPrefix, hb.WriterId);
-            WriterProxy wp;
-            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
+            
+            if (RemoteProxies.TryGetValue(remoteGuid, out WriterProxy wp)) {
                 if (wp.ApplyHeartbeat(hb) && Reliable) {
                     // Reply with Acknack, if FinalFlag is not set, or
                     // we have not received every data
@@ -35,6 +39,10 @@ namespace rtps {
                         Task.Run(() => sendAckNack(wp));
                     }
                 }
+            }
+            else
+            {
+                Log.DebugFormat("Could not find a remote proxy for " + remoteGuid);
             }
         }
 
@@ -51,8 +59,7 @@ namespace rtps {
         public void OnData(GuidPrefix senderPrefix, Data data, Time timestamp) {
             Guid remoteGuid = new Guid(senderPrefix, data.WriterId);
             
-            WriterProxy wp = getWriterProxy(remoteGuid);
-            if (RemoteProxies.TryGetValue(remoteGuid, out wp)) {
+            if (RemoteProxies.TryGetValue(remoteGuid, out WriterProxy wp)) {
                 if (wp.ApplyData(data, Reliable)) {
                     Log.Debug("Adding change to history cache " + data.WriterSequenceNumber);
                     rCache.AddSamples(remoteGuid, new Sample(data, timestamp));
@@ -68,7 +75,9 @@ namespace rtps {
             WriterProxy wp;
             if (!RemoteProxies.TryGetValue(remoteGuid, out wp) &&
                 EntityId.SPDP_BUILTIN_PARTICIPANT_WRITER.Equals(remoteGuid.EntityId)) {
-                
+
+                // TODO: This needs to be added into Participant, i.e. Always add proxy for discovery 
+
                 Log.DebugFormat("{0}, Creating proxy for SPDP writer {1}", 
                     Guid.EntityId, remoteGuid);
                 
@@ -82,11 +91,5 @@ namespace rtps {
         }
 
 
-        protected override WriterProxy CreateProxy(PublicationData pd) {
-            WriterProxy wp = new WriterProxy(pd);
-            RemoteProxies[pd.BuiltinTopicKey] = wp;
-
-            return wp;
-        }
     }
 }
