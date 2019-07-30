@@ -31,8 +31,8 @@ namespace rtps.message {
         /// <param name="seqNum"> Sequence number of the Data submessage </param>
         /// <param name="inlineQosParams"> Inline QoS parameters. May be null. </param>
         /// <param name="dEnc"> If null, neither dataFlag or keyFlag is set </param>
-        public Data(EntityId readerId, EntityId writerId, long seqNum, ParameterList inlineQosParams,
-                    DataEncapsulation dEnc) : base(new SubMessageHeader(KIND)) {
+        public Data(EntityId readerId, EntityId writerId, long seqNum, ParameterList inlineQosParams = null,
+                    DataEncapsulation dEnc = null) : base(new SubMessageHeader(KIND)) {
             this.readerId = readerId;
             this.writerId = writerId;
             this.writerSN = new SequenceNumber(seqNum);

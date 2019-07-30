@@ -25,7 +25,7 @@ namespace rtps {
         }
         
         public void MatchEndpoint(TProxyData builtinData) {
-            Log.DebugFormat("MatchEndpoint({0} -> {0})", Guid, builtinData.BuiltinTopicKey);
+            Log.DebugFormat("MatchEndpoint('{0}' {1} -> {2})", builtinData.TopicName, Guid, builtinData.BuiltinTopicKey);
 
             if (RemoteProxies.ContainsKey(builtinData.BuiltinTopicKey)) {
                 RemoteProxies[builtinData.BuiltinTopicKey].DiscoveredData = builtinData;

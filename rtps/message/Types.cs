@@ -416,7 +416,7 @@ namespace rtps
         }
     }
 
-    public class Time : Type
+    public class Time : Type, IComparable<Time>
     {
         public static readonly Time TIME_ZERO = new Time(0, 0);
         public static readonly Time TIME_INVALID = new Time(0xffffffff, 0xffffffff);
@@ -425,19 +425,31 @@ namespace rtps
         private static readonly DateTime Jan1st1970 =
             new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        private uint seconds;
-        private uint fraction;
+        /// <summary>
+        /// Time in seconds
+        /// </summary>
+        public uint Seconds { get; private set; }
+
+        /// <summary>
+        /// Time in seconds / 2^32
+        /// </summary>
+        public uint Fraction { get; private set; }
+
+        /// <summary>
+        /// Time in milliseconds
+        /// </summary>
+        public uint TimeInMillis => Seconds * 1000 + (Fraction / 2 ^ 32) / 1000;    
 
         public Time(RtpsByteBuffer bb)
         {
-            seconds = bb.read_long() & 0x7fffffff; // long
-            fraction = bb.read_long(); // ulong
+            Seconds = bb.read_long() & 0x7fffffff; // long
+            Fraction = bb.read_long(); // ulong
         }
 
         internal Time(uint sec, uint frac)
         {
-            seconds = sec;
-            fraction = frac;
+            Seconds = sec;
+            Fraction = frac;
         }
 
         public Time() : this((long)(DateTime.UtcNow - Jan1st1970).TotalMilliseconds)
@@ -446,18 +458,44 @@ namespace rtps
 
         public Time(long systemCurrentMillis)
         {
-            seconds = (uint)(systemCurrentMillis / 1000);
+            Seconds = (uint)(systemCurrentMillis / 1000);
 
-            long scm = this.seconds * 1000;
+            long scm = this.Seconds * 1000;
 
-            fraction = (uint)(systemCurrentMillis - scm);
+            Fraction = (uint)(systemCurrentMillis - scm);
         }
 
+        public DateTime GetDateTime()
+        {
+            DateTime dt = Jan1st1970.AddSeconds(Seconds);
+            return dt.AddSeconds(Fraction * (2 ^ 32));
+        }
 
         public override void WriteTo(RtpsByteBuffer bb)
         {
-            bb.write_long(seconds);
-            bb.write_long(fraction);
+            bb.write_long(Seconds);
+            bb.write_long(Fraction);
+        }
+
+        public int CompareTo(Time other)
+        {
+            if (other == null)
+            {
+                return 1;
+            }
+
+            if (Seconds == other.Seconds && Fraction == other.Fraction)
+            {
+                return 0;
+            }
+
+            int secs = (int)Seconds - (int)other.Seconds;
+            if (secs != 0)
+            {
+                return secs;
+            }
+
+            return (int)Fraction - (int)Fraction;
         }
     }
 

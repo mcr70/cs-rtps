@@ -12,10 +12,15 @@ namespace rtps.message.builtin {
 
             foreach (var p in Parameters) {
                 switch (p.Id) {
-                   case ParameterId.PID_BUILTIN_TOPIC_KEY:
-                            
-                        break;
-                            
+                case ParameterId.PID_BUILTIN_TOPIC_KEY:
+                    BuiltinTopicKey = ((BuiltinTopicKey)p).Guid;    
+                    break;
+                case ParameterId.PID_TOPIC_NAME:
+                    TopicName = ((TopicName)p).Name;
+                    break;
+                case ParameterId.PID_TYPE_NAME:
+                    TypeName = ((TypeName)p).Name;
+                    break;
                 }
             }
         }

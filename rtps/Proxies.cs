@@ -5,16 +5,20 @@ using rtps.message.builtin;
 
 namespace rtps {
     public class RemoteProxy {
-        private static readonly log4net.ILog Log = 
+        private static readonly log4net.ILog Log =
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public Guid Guid { get; internal set; }
         public DiscoveredData DiscoveredData { get; internal set; }
+        public bool Reliable { get; internal set;}
+
         private Dictionary<GuidPrefix, ParticipantData> discoveredParticipants = new Dictionary<GuidPrefix, ParticipantData>();
         
         protected RemoteProxy(DiscoveredData dd) {
             DiscoveredData = dd;
             Guid = dd.BuiltinTopicKey;
+            
+            Reliable = true; // TODO: Use Reliability QoS
         }
 
         
@@ -58,10 +62,18 @@ namespace rtps {
     }
     
     public class WriterProxy : RemoteProxy {
+        /// <summary>
+        /// Sequence number of latest sample known. It will be changed when Data or Gap
+        /// Message is received.
+        /// </summary>
         public long SeqNumMax { get; private set; }
+
+        /// <summary>
+        /// EntityId of the remote writer
+        /// </summary>
         public EntityId EntityId {
             get { return DiscoveredData.BuiltinTopicKey.EntityId; }
-            private set { }
+            //private set { }
         }
 
         private int _hbSuppressionDuration = 0; // TODO: Configurable
@@ -85,7 +97,7 @@ namespace rtps {
         internal bool ApplyHeartbeat(Heartbeat hb) {
             AssertLiveliness();
             DateTime now = DateTime.Now;
-            
+
             if (_latestHeartbeat == null) {
                 _latestHeartbeat = hb;
                 _latestHbReceiveTime = now;

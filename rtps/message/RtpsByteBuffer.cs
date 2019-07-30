@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace rtps.message {
     public class RtpsByteBuffer {
@@ -63,6 +64,23 @@ namespace rtps.message {
             for (int i = 0; i < longs.Length; i++) {
                 longs[i] = read_long();
             }
+        }
+
+        public string read_string()
+        {
+            uint length = read_long() - 1; // ignore trailing NUL character
+            byte[] bytes = new byte[length];
+            read(bytes);
+            read_octet(); // Read terminating NUL character. ignore it.
+
+            return Encoding.Default.GetString(bytes); // TODO: encoding should be changeable
+        }
+
+        public void write_string(string s)
+        {
+            write_long((uint)(s.Length + 1)); // +1 for adding terminating NUL character
+            write(Encoding.Default.GetBytes(s)); // TODO: encoding should be changeable
+            write_octet((byte)0); // terminating NUL character
         }
 
         public void write(byte[] bytes) {

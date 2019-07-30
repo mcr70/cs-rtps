@@ -115,7 +115,7 @@ namespace rtps.message {
                     submessages.Add(sm);
                 }
                 catch (Exception e) {
-                    Log.WarnFormat("Failed to parse submessage {0}", smh.Kind);
+                    Log.Warn("Failed to parse submessage " + smh.Kind, e);
                 }
             }
         }
@@ -209,7 +209,7 @@ namespace rtps.message {
     /// 
     /// </summary>
     public class Header {
-        private static readonly byte[] HDR_START = new byte[] {(byte) 'R', (byte) 'T', (byte) 'P', (byte) 'S'};
+        private static readonly byte[] HDR_START = {(byte) 'R', (byte) 'T', (byte) 'P', (byte) 'S'};
 
         // private ProtocolId_t protocol;
         private byte[] hdrStart;

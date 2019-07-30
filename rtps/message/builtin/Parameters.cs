@@ -142,6 +142,7 @@ namespace rtps.message.builtin {
     public enum ChangeKind {
         Write, Dispose, Unregister
     }
+
     public class StatusInfo : Parameter {
         private byte[] _flags = new byte[4];
 
@@ -232,6 +233,46 @@ namespace rtps.message.builtin {
         }
         public override void WriteTo(RtpsByteBuffer bb) {
             Guid.WriteTo(bb);
+        }
+    }
+
+    public class TopicName : Parameter
+    {
+        public string Name { get; internal set; }
+
+        internal TopicName() : base(ParameterId.PID_TOPIC_NAME) { }
+        public TopicName(string name) : base(ParameterId.PID_TOPIC_NAME)
+        {
+            Name = name;
+        }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            Name = bb.read_string();
+        }
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            bb.write_string(Name);
+        }
+    }
+
+    public class TypeName : Parameter
+    {
+        public string Name { get; internal set; }
+
+        internal TypeName() : base(ParameterId.PID_TYPE_NAME) { }
+        public TypeName(string name) : base(ParameterId.PID_TYPE_NAME)
+        {
+            Name = name;
+        }
+
+        public override void ReadFrom(RtpsByteBuffer bb, ushort length)
+        {
+            Name = bb.read_string();
+        }
+        public override void WriteTo(RtpsByteBuffer bb)
+        {
+            bb.write_string(Name);
         }
     }
 

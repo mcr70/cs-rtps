@@ -26,9 +26,18 @@ namespace rtps.message
 			readMessage(bb);
 		}
 
-		public InfoTimestamp(long systemCurrentMillis) : base(new SubMessageHeader(KIND))
+        public InfoTimestamp(Time t = null) : base(new SubMessageHeader(KIND))
+        {
+            if (t == null)
+            {
+                t = new Time();
+            }
+            this.timestamp = t;
+            header.flags = (byte)(header.flags & ~0x2); // Unset the bit
+        }
+
+        public InfoTimestamp(long systemCurrentMillis) : this(new Time(systemCurrentMillis))
 		{
-			this.timestamp = new Time(systemCurrentMillis);
 		}
 
 		/// <summary>

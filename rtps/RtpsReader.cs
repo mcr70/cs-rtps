@@ -9,9 +9,9 @@ namespace rtps {
             log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint _ackNackCount;
-        private readonly IReaderCache rCache;
+        protected readonly IReaderCache rCache;
         
-        public RtpsReader(Guid guid, IReaderCache rCache, bool reliable = false) : base(guid, reliable) {
+        public RtpsReader(Guid guid, IReaderCache rCache, bool reliable) : base(guid, reliable) {
             this.rCache = rCache;
         }
 
@@ -46,16 +46,6 @@ namespace rtps {
             }
         }
 
-        private void sendAckNack(WriterProxy wp) {
-            Message msg = new Message(Guid.Prefix);
-            AckNack a = new AckNack(Guid.EntityId, wp.EntityId, wp.GetSequenceNumberSet(), ++_ackNackCount);
-            a.FinalFlag = wp.IsAllReceived();
-            
-            msg.Add(a);
-            SendMessage(msg, wp);
-        }
-
-
         public void OnData(GuidPrefix senderPrefix, Data data, Time timestamp) {
             Guid remoteGuid = new Guid(senderPrefix, data.WriterId);
             
@@ -69,6 +59,17 @@ namespace rtps {
                 Log.DebugFormat("{0}, Discarding Data from unknown writer: {1}", 
                     Guid.EntityId, remoteGuid);                
             }
+        }
+
+
+        private void sendAckNack(WriterProxy wp)
+        {
+            Message msg = new Message(Guid.Prefix);
+            AckNack a = new AckNack(Guid.EntityId, wp.EntityId, wp.GetSequenceNumberSet(), ++_ackNackCount);
+            a.FinalFlag = wp.IsAllReceived();
+
+            msg.Add(a);
+            SendMessage(msg, wp);
         }
 
         private WriterProxy getWriterProxy(Guid remoteGuid) {
